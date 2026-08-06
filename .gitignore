@@ -1,0 +1,22 @@
+# Dépendances
+/node_modules
+
+# Fichiers de build Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Fichiers d'environnement (SECRETS — ne jamais committer)
+.env
+.env.local
+.env*.local
+
+# Divers
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel
+*.tsbuildinfo
+next-env.d.ts

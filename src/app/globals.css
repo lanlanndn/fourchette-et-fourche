@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette Fourchette & Fourche */
+  --color-creme: #faf6ef;        /* fond général */
+  --color-creme-fonce: #f3ecdf;  /* fond sections alternées */
+  --color-foret: #2f5d3a;        /* vert principal (producteurs) */
+  --color-foret-clair: #4c8a5c;
+  --color-foret-pale: #e3efe5;
+  --color-terre: #d96c47;        /* terracotta (restaurateurs, CTA) */
+  --color-terre-fonce: #b8552f;
+  --color-terre-pale: #fbe9e0;
+  --color-brun: #3b2f2a;         /* texte principal */
+  --color-brun-clair: #7a6a62;   /* texte secondaire */
+
+  --font-titre: var(--font-fraunces), Georgia, serif;
+  --font-texte: var(--font-inter), system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-creme);
+  color: var(--color-brun);
+  font-family: var(--font-texte);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-titre);
+}

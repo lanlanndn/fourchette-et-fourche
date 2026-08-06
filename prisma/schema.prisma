@@ -1,0 +1,228 @@
+// Schéma de base de données — Fourchette & Fourche
+// PostgreSQL (hébergé sur Supabase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Utilisateurs ----------
+
+enum Role {
+  RESTAURATEUR
+  PRODUCTEUR
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  role          Role
+  displayName   String
+  phone         String?
+  bio           String?
+  avatarUrl     String?
+  siret         String? // producteurs (et restaurateurs si souhaité)
+
+  // Localisation
+  address       String?
+  city          String?
+  postalCode    String?
+  departement   String? // code : 01, 02, ..., 2A, 2B, ..., 974...
+  region        String? // code ISO région
+  lat           Float?
+  lng           Float?
+
+  isVerified    Boolean  @default(false)
+
+  // Stripe Connect (producteurs)
+  stripeAccountId            String? @unique
+  stripeOnboardingComplete   Boolean @default(false)
+
+  certifications  String[] // BIO, LABEL_ROUGE, AOC, AOP, IGP, DEMETER...
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings            Listing[]
+  sentMessages        Message[]                 @relation("SentMessages")
+  conversations       ConversationParticipant[]
+  ordersAsBuyer       Order[]                   @relation("BuyerOrders")
+  reviewsWritten      Review[]                  @relation("ReviewsWritten")
+  reviewsReceived     Review[]                  @relation("ReviewsReceived")
+
+  @@index([departement])
+  @@index([region])
+  @@index([role])
+}
+
+// ---------- Annonces ----------
+
+enum Category {
+  LEGUMES
+  FRUITS
+  VIANDE
+  VOLAILLE
+  POISSON
+  FRUITS_DE_MER
+  FROMAGE
+  PRODUITS_LAITIERS
+  OEUFS
+  VIN
+  BIERE
+  BOISSONS
+  MIEL
+  EPICERIE
+  FARINE
+  HUILE
+  HERBES_AROMATES
+  FLEURS
+  AUTRE
+}
+
+enum Unit {
+  KG
+  GRAMMES
+  PIECE
+  LITRE
+  BOUTEILLE
+  BOTTE
+  SAC
+  CAISSE
+  DOUZAINE
+}
+
+model Listing {
+  id          String   @id @default(uuid())
+  producerId  String
+  producer    User     @relation(fields: [producerId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  category    Category
+  priceCents  Int // TOUJOURS en centimes (ex : 250 = 2,50 €)
+  unit        Unit
+  quantityAvailable Int
+  quantitySold      Int @default(0)
+
+  photos         String[] // URLs Supabase Storage
+  certifications String[]
+
+  // Localisation de l'annonce (par défaut = celle du producteur)
+  address     String?
+  city        String?
+  departement String
+  region      String
+  lat         Float
+  lng         Float
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conversations Conversation[]
+  orderItems    OrderItem[]
+
+  @@index([producerId])
+  @@index([category])
+  @@index([departement])
+  @@index([region])
+  @@index([isActive])
+}
+
+// ---------- Messagerie ----------
+
+model Conversation {
+  id        String   @id @default(uuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([listingId])
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ---------- Commandes ----------
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  REFUNDED
+  DISPUTED
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  buyerId         String
+  buyer           User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  status          OrderStatus @default(PENDING_PAYMENT)
+  totalCents      Int
+  commissionCents Int // part de la plateforme
+
+  stripePaymentIntentId String? @unique
+  stripeChargeId        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@index([buyerId])
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId      String
+  listing        Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  quantity       Float
+  unitPriceCents Int
+  subtotalCents  Int
+
+  @@index([orderId])
+}
+
+// ---------- Avis ----------
+
+model Review {
+  id         String   @id @default(cuid())
+  reviewerId String
+  reviewer   User     @relation("ReviewsWritten", fields: [reviewerId], references: [id])
+  producerId String
+  producer   User     @relation("ReviewsReceived", fields: [producerId], references: [id], onDelete: Cascade)
+  rating     Int // 1 à 5
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@index([producerId])
+}
