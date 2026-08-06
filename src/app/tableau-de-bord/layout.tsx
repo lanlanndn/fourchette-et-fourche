@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { deconnexionAction } from "@/lib/actions/auth";
+import { IconeFourche, IconeFourchette } from "@/components/icones";
 
 export default async function LayoutTableauDeBord({
   children,
@@ -14,40 +15,50 @@ export default async function LayoutTableauDeBord({
   const estProducteur = user.role === "PRODUCTEUR";
 
   const liens = [
-    { href: "/tableau-de-bord", label: "🏠 Accueil" },
+    { href: "/tableau-de-bord", label: "Accueil" },
     ...(estProducteur
-      ? [{ href: "/tableau-de-bord/annonces", label: "🥕 Mes annonces" }]
+      ? [{ href: "/tableau-de-bord/annonces", label: "Mes annonces" }]
       : []),
-    { href: "/tableau-de-bord/commandes", label: "📦 Commandes" },
-    { href: "/tableau-de-bord/messagerie", label: "💬 Messagerie" },
-    { href: "/tableau-de-bord/profil", label: "👤 Mon profil" },
+    { href: "/tableau-de-bord/commandes", label: "Commandes" },
+    { href: "/tableau-de-bord/messagerie", label: "Messagerie" },
+    { href: "/tableau-de-bord/profil", label: "Mon profil" },
   ];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8 md:flex-row">
+    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 md:flex-row">
       {/* Menu latéral */}
-      <aside className="md:w-56 md:shrink-0">
-        <div className="rounded-2xl border border-creme-fonce bg-white p-4">
-          <p className="px-2 pb-3 text-sm font-semibold text-brun">
-            {estProducteur ? "🚜" : "🍽️"} {user.displayName}
+      <aside className="md:w-60 md:shrink-0">
+        <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-4">
+          <p className="flex items-center gap-2.5 border-b-2 border-encre/10 px-2 pb-3 text-sm font-bold text-encre">
+            <span className="flex h-8 w-8 items-center justify-center rounded-sm border-2 border-encre bg-ocre/25">
+              {estProducteur ? (
+                <IconeFourche className="h-5 w-5" />
+              ) : (
+                <IconeFourchette className="h-5 w-5" />
+              )}
+            </span>
+            {user.displayName}
           </p>
-          <nav className="flex flex-row gap-1 overflow-x-auto md:flex-col">
+          <nav className="mt-2 flex flex-row gap-1 overflow-x-auto md:flex-col">
             {liens.map((lien) => (
               <Link
                 key={lien.href}
                 href={lien.href}
-                className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-brun transition-colors hover:bg-foret-pale/50 hover:text-foret"
+                className="whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-encre transition-colors hover:bg-platre-fonce hover:text-outremer"
               >
                 {lien.label}
               </Link>
             ))}
           </nav>
-          <form action={deconnexionAction} className="mt-3 border-t border-creme-fonce pt-3">
+          <form
+            action={deconnexionAction}
+            className="mt-3 border-t-2 border-encre/10 pt-3"
+          >
             <button
               type="submit"
-              className="w-full rounded-lg px-3 py-2 text-left text-sm text-brun-clair transition-colors hover:bg-red-50 hover:text-red-600"
+              className="w-full rounded-sm px-3 py-2 text-left text-sm font-medium text-encre-doux transition-colors hover:bg-garance/10 hover:text-garance"
             >
-              🚪 Se déconnecter
+              Se déconnecter
             </button>
           </form>
         </div>

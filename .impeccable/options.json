@@ -1,0 +1,67 @@
+{
+  "title": "Choisissez le monde visuel",
+  "question": "Le tirage a assigné « L'Enseigne Peinte ». Gardez-la, choisissez une alternative, ou relancez les dés.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "L'Enseigne Peinte",
+      "kicker": "LE TIRAGE",
+      "lineage": "Murs publicitaires peints de la France rurale, 1900-1970 — Dubonnet, Suze, Byrrh",
+      "thesis": "Le site comme un mur peint par un artisan lettreur : typographie monumentale, prix assumés, zéro photo nécessaire.",
+      "palette": ["#f2ead8", "#1d3f8f", "#c8401f", "#e3a82c", "#26221d"],
+      "materials": ["peinture sur enduit", "capitales de peintre en bâtiment", "grain de brique et de plâtre"],
+      "viewport": "Un pan de mur : le nom en capitales énormes sur enduit clair, les départements alignés comme des numéros de route, l'action principale en vermillon.",
+      "risk": "Verser dans le kitsch si la patine devient du grunge : la discipline est typographique, pas décorative."
+    },
+    {
+      "id": "challenger-orienteering",
+      "label": "Carte d'Orientation",
+      "lineage": "cartes d'orientation ISO : courbes de niveau, violet de circuit, légende à symboles",
+      "thesis": "Le site comme une carte de terrain où chaque annonce est un poste numéroté et chaque producteur un point de contrôle.",
+      "case": "La carte EST le produit, fusion naturelle — mais c'est une langue pour opérer, pas pour convaincre : l'accueil perd en persuasion.",
+      "palette": ["#ffffff", "#8a9153", "#f5d547", "#8a5a2b", "#7a2e8f"],
+      "materials": ["encres ISO cartographiques", "courbes de niveau en trame", "chiffres condensés violets"],
+      "viewport": "Une carte plein écran en encres normalisées, le parcours violet relie trois fermes numérotées, la légende en marge classe les catégories.",
+      "risk": "Le violet d'orientation est une langue de coureurs, pas d'agriculteurs : identification moyenne malgré une carte parfaite.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map.webp"
+    },
+    {
+      "id": "challenger-riso",
+      "label": "Affiche Risograph",
+      "lineage": "impression Riso à encres directes : grain, fluo, faux-repérage assumé",
+      "thesis": "Le site comme une affiche de coopérative imprimée en deux encres fluo qui se décalent et se mélangent.",
+      "case": "Belle énergie d'imprimé et zéro photo requise — mais ça lit « studio de graphisme » avant « outil de travail » pour un agriculteur pressé.",
+      "palette": ["#f4ecd9", "#ff48b0", "#2244cc", "#f2b813"],
+      "materials": ["papier chamois", "encres fluo en surimpression", "grain de trame"],
+      "viewport": "Bloc d'encre bleue décalée sur rose fluo, le titre en grotesque gras d'une seule encre, des formes découpées au couteau.",
+      "risk": "Le grain Riso partout devient du bruit : la lisibilité des prix et des listes doit survivre à la texture.",
+      "hero": "https://impeccable.style/worlds/cards/risograph-web-system-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/risograph-web-system.webp"
+    },
+    {
+      "id": "challenger-multiplane",
+      "label": "Aube en Multiplan",
+      "lineage": "animation multiplan peinte à la gouache : plans de forêt, brume, fenêtre allumée",
+      "thesis": "Le site comme un travelling de cinéma : la caméra descend à travers la brume vers la ferme éclairée, au fil du scroll.",
+      "case": "Magnifique en profondeur, mais l'atmosphère cache l'offre : un producteur pressé doit voir prix et débouchés en cinq secondes.",
+      "palette": ["#22301f", "#5d7052", "#9fb4ad", "#3a2c1e", "#e8a33d"],
+      "materials": ["gouache peinte en plans", "brume bleu-gris", "ambre de lampe"],
+      "viewport": "Cinq plans peints glissent à vitesses différentes : fougères floues au premier plan, ferme et fenêtre ambrée au loin, titre sur le plan avant.",
+      "risk": "Sans vraies illustrations peintes, le multiplan tombe à plat : il exige des assets que nous n'avons pas.",
+      "hero": "https://impeccable.style/worlds/cards/cinema-cinematography-editing-multiplane-cel-dawn-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/cinema-cinematography-editing-multiplane-cel-dawn.webp"
+    }
+  ],
+  "reroll": true,
+  "steer": true,
+  "canon": true,
+  "canonCard": {
+    "label": "Le Standard de la Catégorie",
+    "thesis": "La marketplace alimentaire B2B classique, exécutée impeccablement : belle photo, cartes blanches, badges de confiance.",
+    "palette": ["#ffffff", "#16a34a", "#111827", "#f9fafb"],
+    "materials": ["photographie premium", "cartes blanches à ombres douces"],
+    "viewport": "Héro avec grande image de marché, trois colonnes d'arguments, grille d'annonces soignée, bandeau d'inscription.",
+    "risk": "Exactement ce qu'on devine d'une marketplace : propre, rassurant, et personne ne s'en souvient."
+  }
+}

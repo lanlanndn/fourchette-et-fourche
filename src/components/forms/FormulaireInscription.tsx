@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { inscriptionAction } from "@/lib/actions/auth";
 import MessageFormulaire from "./MessageFormulaire";
 import BoutonEnvoi from "./BoutonEnvoi";
+import { IconeFourche, IconeFourchette } from "@/components/icones";
 
 export default function FormulaireInscription() {
   const [etat, action, enCours] = useActionState(inscriptionAction, null);
@@ -12,28 +13,8 @@ export default function FormulaireInscription() {
     <form action={action} className="space-y-5">
       {/* Choix du rôle */}
       <fieldset>
-        <legend className="mb-2 text-sm font-semibold text-brun">
-          Tu es…
-        </legend>
+        <legend className="libelle mb-2">Vous êtes…</legend>
         <div className="grid grid-cols-2 gap-3">
-          <label className="cursor-pointer">
-            <input
-              type="radio"
-              name="role"
-              value="RESTAURATEUR"
-              className="peer sr-only"
-              required
-            />
-            <div className="rounded-xl border-2 border-creme-fonce bg-white p-4 text-center transition-all peer-checked:border-terre peer-checked:bg-terre-pale/40">
-              <p className="text-3xl">🍽️</p>
-              <p className="mt-1 text-sm font-semibold text-brun">
-                Restaurateur
-              </p>
-              <p className="mt-0.5 text-xs text-brun-clair">
-                Je cherche des produits locaux
-              </p>
-            </div>
-          </label>
           <label className="cursor-pointer">
             <input
               type="radio"
@@ -42,13 +23,31 @@ export default function FormulaireInscription() {
               className="peer sr-only"
               required
             />
-            <div className="rounded-xl border-2 border-creme-fonce bg-white p-4 text-center transition-all peer-checked:border-foret peer-checked:bg-foret-pale/40">
-              <p className="text-3xl">🚜</p>
-              <p className="mt-1 text-sm font-semibold text-brun">
-                Producteur
+            <div className="rounded-sm border-2 border-encre/25 bg-[#fbf7ec] p-4 text-center transition-all peer-checked:border-garance peer-checked:bg-garance/10 peer-checked:shadow-[3px_3px_0_0_rgb(185_58_29/0.4)]">
+              <p className="mx-auto flex h-10 w-10 items-center justify-center rounded-sm border-2 border-encre bg-ocre/25 text-encre">
+                <IconeFourche className="h-6 w-6" />
               </p>
-              <p className="mt-0.5 text-xs text-brun-clair">
+              <p className="mt-2 text-sm font-bold text-encre">Producteur</p>
+              <p className="mt-0.5 text-xs text-encre-doux">
                 Je vends mes produits
+              </p>
+            </div>
+          </label>
+          <label className="cursor-pointer">
+            <input
+              type="radio"
+              name="role"
+              value="RESTAURATEUR"
+              className="peer sr-only"
+              required
+            />
+            <div className="rounded-sm border-2 border-encre/25 bg-[#fbf7ec] p-4 text-center transition-all peer-checked:border-outremer peer-checked:bg-outremer/10 peer-checked:shadow-[3px_3px_0_0_rgb(30_63_140/0.4)]">
+              <p className="mx-auto flex h-10 w-10 items-center justify-center rounded-sm border-2 border-encre bg-ocre/25 text-encre">
+                <IconeFourchette className="h-6 w-6" />
+              </p>
+              <p className="mt-2 text-sm font-bold text-encre">Restaurateur</p>
+              <p className="mt-0.5 text-xs text-encre-doux">
+                Je cherche des produits locaux
               </p>
             </div>
           </label>
@@ -56,7 +55,7 @@ export default function FormulaireInscription() {
       </fieldset>
 
       <div>
-        <label htmlFor="nom" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="nom" className="libelle mb-2">
           Nom de l&apos;établissement ou de l&apos;exploitation
         </label>
         <input
@@ -65,12 +64,12 @@ export default function FormulaireInscription() {
           type="text"
           required
           placeholder="Ex : Bistrot du Marché / Ferme des Lilas"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          className="champ focus:champ-focus"
         />
       </div>
 
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="email" className="libelle mb-2">
           Adresse email
         </label>
         <input
@@ -79,13 +78,13 @@ export default function FormulaireInscription() {
           type="email"
           required
           autoComplete="email"
-          placeholder="toi@exemple.fr"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          placeholder="vous@exemple.fr"
+          className="champ focus:champ-focus"
         />
       </div>
 
       <div>
-        <label htmlFor="motDePasse" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="motDePasse" className="libelle mb-2">
           Mot de passe
         </label>
         <input
@@ -96,7 +95,7 @@ export default function FormulaireInscription() {
           minLength={8}
           autoComplete="new-password"
           placeholder="8 caractères minimum"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          className="champ focus:champ-focus"
         />
       </div>
 
@@ -104,13 +103,16 @@ export default function FormulaireInscription() {
 
       <BoutonEnvoi enCours={enCours} texte="Créer mon compte" />
 
-      <p className="text-center text-xs text-brun-clair">
-        En créant un compte, tu acceptes nos{" "}
-        <a href="/cgv" className="underline hover:text-foret">
+      <p className="text-center text-xs text-encre-doux">
+        En créant un compte, vous acceptez nos{" "}
+        <a href="/cgv" className="font-semibold underline hover:text-garance">
           CGV
         </a>{" "}
         et notre{" "}
-        <a href="/politique-confidentialite" className="underline hover:text-foret">
+        <a
+          href="/politique-confidentialite"
+          className="font-semibold underline hover:text-garance"
+        >
           politique de confidentialité
         </a>
         .

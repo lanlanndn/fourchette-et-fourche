@@ -14,7 +14,7 @@ export default function BoutonEnvoi({
     <button
       type="submit"
       disabled={enCours}
-      className="w-full rounded-full bg-terre px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-terre-fonce disabled:cursor-not-allowed disabled:opacity-60"
+      className="relief w-full rounded-sm border-2 border-encre bg-garance px-6 py-3.5 font-texte text-sm font-bold tracking-wide text-platre uppercase transition-all hover:-translate-y-0.5 hover:bg-garance-fonce disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
     >
       {enCours ? texteEnCours : texte}
     </button>

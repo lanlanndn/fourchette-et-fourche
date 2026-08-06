@@ -1,4 +1,4 @@
-import type { Category, Listing, Unit, User } from "@prisma/client";
+import type { Category, Listing, User } from "@prisma/client";
 import type { AnnonceAvecProducteur, ProducteurAvecAnnonces } from "./types";
 
 // ============================================================

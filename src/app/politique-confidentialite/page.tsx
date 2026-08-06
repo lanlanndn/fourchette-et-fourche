@@ -5,12 +5,12 @@ export const metadata: Metadata = { title: "Politique de confidentialité" };
 export default function PolitiqueConfidentialitePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-3xl font-bold text-brun">
+      <h1 className="font-affiche text-4xl text-encre uppercase">
         Politique de confidentialité
       </h1>
-      <div className="mt-6 space-y-4 rounded-xl border border-terre-pale bg-terre-pale/30 p-6 text-sm text-brun">
-        <p className="font-semibold">
-          ⚠️ Gabarit temporaire — à compléter avant l&apos;ouverture des
+      <div className="relief-doux mt-8 space-y-4 border-2 border-encre bg-ocre/15 p-6 text-sm leading-relaxed text-encre">
+        <p className="font-bold">
+          Gabarit temporaire — à compléter avant l&apos;ouverture des
           inscriptions.
         </p>
         <p>

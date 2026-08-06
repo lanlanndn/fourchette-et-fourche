@@ -11,7 +11,7 @@ export default function FormulaireMotDePasseOublie() {
   return (
     <form action={action} className="space-y-5">
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="email" className="libelle mb-2">
           Adresse email
         </label>
         <input
@@ -20,8 +20,8 @@ export default function FormulaireMotDePasseOublie() {
           type="email"
           required
           autoComplete="email"
-          placeholder="toi@exemple.fr"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          placeholder="vous@exemple.fr"
+          className="champ focus:champ-focus"
         />
       </div>
 

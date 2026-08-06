@@ -11,7 +11,7 @@ export default function FormulaireConnexion() {
   return (
     <form action={action} className="space-y-5">
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="email" className="libelle mb-2">
           Adresse email
         </label>
         <input
@@ -20,13 +20,13 @@ export default function FormulaireConnexion() {
           type="email"
           required
           autoComplete="email"
-          placeholder="toi@exemple.fr"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          placeholder="vous@exemple.fr"
+          className="champ focus:champ-focus"
         />
       </div>
 
       <div>
-        <label htmlFor="motDePasse" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="motDePasse" className="libelle mb-2">
           Mot de passe
         </label>
         <input
@@ -35,14 +35,14 @@ export default function FormulaireConnexion() {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          className="champ focus:champ-focus"
         />
       </div>
 
       <div className="text-right">
         <a
           href="/mot-de-passe-oublie"
-          className="text-xs text-brun-clair underline hover:text-foret"
+          className="text-xs font-medium text-encre-doux underline underline-offset-2 hover:text-garance"
         >
           Mot de passe oublié ?
         </a>

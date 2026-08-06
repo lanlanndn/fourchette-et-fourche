@@ -1,0 +1,379 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-06T12:00:00Z",
+  "title": "Design System: Fourchette & Fourche",
+  "extensions": {
+    "colorMeta": {
+      "platre": {
+        "role": "neutral",
+        "displayName": "Plâtre",
+        "canonical": "oklch(94% 0.02 90)",
+        "tonalRamp": [
+          "oklch(15% 0.02 90)",
+          "oklch(26% 0.02 90)",
+          "oklch(37% 0.02 90)",
+          "oklch(48% 0.02 90)",
+          "oklch(59% 0.02 90)",
+          "oklch(70% 0.02 90)",
+          "oklch(81% 0.02 90)",
+          "oklch(93% 0.02 90)"
+        ]
+      },
+      "platre-fonce": {
+        "role": "neutral",
+        "displayName": "Plâtre foncé",
+        "canonical": "oklch(87% 0.04 90)",
+        "tonalRamp": [
+          "oklch(15% 0.04 90)",
+          "oklch(26% 0.04 90)",
+          "oklch(37% 0.04 90)",
+          "oklch(48% 0.04 90)",
+          "oklch(59% 0.04 90)",
+          "oklch(70% 0.04 90)",
+          "oklch(81% 0.04 90)",
+          "oklch(93% 0.04 90)"
+        ]
+      },
+      "outremer": {
+        "role": "primary",
+        "displayName": "Outremer peint",
+        "canonical": "oklch(40% 0.15 260)",
+        "tonalRamp": [
+          "oklch(15% 0.15 260)",
+          "oklch(26% 0.15 260)",
+          "oklch(37% 0.15 260)",
+          "oklch(48% 0.15 260)",
+          "oklch(59% 0.15 260)",
+          "oklch(70% 0.15 260)",
+          "oklch(81% 0.15 260)",
+          "oklch(93% 0.15 260)"
+        ]
+      },
+      "outremer-nuit": {
+        "role": "primary",
+        "displayName": "Outremer-nuit",
+        "canonical": "oklch(30% 0.12 260)",
+        "tonalRamp": [
+          "oklch(15% 0.12 260)",
+          "oklch(26% 0.12 260)",
+          "oklch(37% 0.12 260)",
+          "oklch(48% 0.12 260)",
+          "oklch(59% 0.12 260)",
+          "oklch(70% 0.12 260)",
+          "oklch(81% 0.12 260)",
+          "oklch(93% 0.12 260)"
+        ]
+      },
+      "garance": {
+        "role": "secondary",
+        "displayName": "Garance",
+        "canonical": "oklch(55% 0.18 30)",
+        "tonalRamp": [
+          "oklch(15% 0.18 30)",
+          "oklch(26% 0.18 30)",
+          "oklch(37% 0.18 30)",
+          "oklch(48% 0.18 30)",
+          "oklch(59% 0.18 30)",
+          "oklch(70% 0.18 30)",
+          "oklch(81% 0.18 30)",
+          "oklch(93% 0.18 30)"
+        ]
+      },
+      "garance-fonce": {
+        "role": "secondary",
+        "displayName": "Garance foncé",
+        "canonical": "oklch(45% 0.16 30)",
+        "tonalRamp": [
+          "oklch(15% 0.16 30)",
+          "oklch(26% 0.16 30)",
+          "oklch(37% 0.16 30)",
+          "oklch(48% 0.16 30)",
+          "oklch(59% 0.16 30)",
+          "oklch(70% 0.16 30)",
+          "oklch(81% 0.16 30)",
+          "oklch(93% 0.16 30)"
+        ]
+      },
+      "ocre": {
+        "role": "tertiary",
+        "displayName": "Ocre",
+        "canonical": "oklch(72% 0.15 85)",
+        "tonalRamp": [
+          "oklch(15% 0.15 85)",
+          "oklch(26% 0.15 85)",
+          "oklch(37% 0.15 85)",
+          "oklch(48% 0.15 85)",
+          "oklch(59% 0.15 85)",
+          "oklch(70% 0.15 85)",
+          "oklch(81% 0.15 85)",
+          "oklch(93% 0.15 85)"
+        ]
+      },
+      "verdigris": {
+        "role": "tertiary",
+        "displayName": "Verdigris",
+        "canonical": "oklch(45% 0.10 160)",
+        "tonalRamp": [
+          "oklch(15% 0.10 160)",
+          "oklch(26% 0.10 160)",
+          "oklch(37% 0.10 160)",
+          "oklch(48% 0.10 160)",
+          "oklch(59% 0.10 160)",
+          "oklch(70% 0.10 160)",
+          "oklch(81% 0.10 160)",
+          "oklch(93% 0.10 160)"
+        ]
+      },
+      "prune": {
+        "role": "tertiary",
+        "displayName": "Prune",
+        "canonical": "oklch(40% 0.12 350)",
+        "tonalRamp": [
+          "oklch(15% 0.12 350)",
+          "oklch(26% 0.12 350)",
+          "oklch(37% 0.12 350)",
+          "oklch(48% 0.12 350)",
+          "oklch(59% 0.12 350)",
+          "oklch(70% 0.12 350)",
+          "oklch(81% 0.12 350)",
+          "oklch(93% 0.12 350)"
+        ]
+      },
+      "havane": {
+        "role": "tertiary",
+        "displayName": "Havane",
+        "canonical": "oklch(45% 0.12 70)",
+        "tonalRamp": [
+          "oklch(15% 0.12 70)",
+          "oklch(26% 0.12 70)",
+          "oklch(37% 0.12 70)",
+          "oklch(48% 0.12 70)",
+          "oklch(59% 0.12 70)",
+          "oklch(70% 0.12 70)",
+          "oklch(81% 0.12 70)",
+          "oklch(93% 0.12 70)"
+        ]
+      },
+      "encre": {
+        "role": "neutral",
+        "displayName": "Encre",
+        "canonical": "oklch(20% 0.02 80)",
+        "tonalRamp": [
+          "oklch(15% 0.02 80)",
+          "oklch(26% 0.02 80)",
+          "oklch(37% 0.02 80)",
+          "oklch(48% 0.02 80)",
+          "oklch(59% 0.02 80)",
+          "oklch(70% 0.02 80)",
+          "oklch(81% 0.02 80)",
+          "oklch(93% 0.02 80)"
+        ]
+      },
+      "encre-doux": {
+        "role": "neutral",
+        "displayName": "Encre doux",
+        "canonical": "oklch(45% 0.04 80)",
+        "tonalRamp": [
+          "oklch(15% 0.04 80)",
+          "oklch(26% 0.04 80)",
+          "oklch(37% 0.04 80)",
+          "oklch(48% 0.04 80)",
+          "oklch(59% 0.04 80)",
+          "oklch(70% 0.04 80)",
+          "oklch(81% 0.04 80)",
+          "oklch(93% 0.04 80)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Titres monumentaux du héros et des sections, en capitales peintes."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Titres de section secondaires, toujours en Caprasimo."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Titres de cartes et de blocs de contenu."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Paragraphes, descriptions, texte courant en Chivo."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigation, étiquettes, badges : petites capitales grasses espacées."
+      }
+    },
+    "shadows": [
+      {
+        "name": "relief",
+        "value": "4px 4px 0 0 rgb(40 34 27 / 0.9)",
+        "purpose": "Ombre décalée pleine pour les plaques épaisses (boutons primaires, blocs de section)."
+      },
+      {
+        "name": "relief-doux",
+        "value": "3px 3px 0 0 rgb(40 34 27 / 0.25)",
+        "purpose": "Ombre légère pour les cartes et conteneurs au repos."
+      },
+      {
+        "name": "relief-hover",
+        "value": "6px 6px 0 0 rgb(40 34 27 / 0.9)",
+        "purpose": "État hover des éléments interactifs en relief."
+      },
+      {
+        "name": "relief-hover-clair",
+        "value": "6px 6px 0 0 rgb(40 34 27 / 0.35)",
+        "purpose": "État hover des éléments clairs (bouton secondaire, CTA final)."
+      },
+      {
+        "name": "champ-focus",
+        "value": "3px 3px 0 0 rgb(30 63 140 / 0.35)",
+        "purpose": "Focus des champs de formulaire, en outremer."
+      },
+      {
+        "name": "ombre-lettre",
+        "value": "0.055em 0.055em 0 #dda92c",
+        "purpose": "Ombre de pinceau sous les capitales peintes."
+      },
+      {
+        "name": "filet",
+        "value": "inset 0 0 0 4px var(--color-platre), inset 0 0 0 5px rgb(40 34 27 / 0.55)",
+        "purpose": "Double filet intérieur peint, utilisé sur les sections sombres."
+      }
+    ],
+    "motion": [
+      {
+        "name": "pinceau",
+        "value": "0.7s cubic-bezier(0.22, 0.8, 0.3, 1)",
+        "purpose": "Entrée des éléments du héros, une seule fois au chargement."
+      },
+      {
+        "name": "defile",
+        "value": "90s linear infinite",
+        "purpose": "Frise infinie de plaques départementales."
+      },
+      {
+        "name": "transition-rapide",
+        "value": "0.15s ease",
+        "purpose": "Changement de bordure et d'ombre des champs."
+      },
+      {
+        "name": "transition-standard",
+        "value": "0.2s ease",
+        "purpose": "Transitions de couleur et de translation des boutons."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Bouton d'action principale : inscription, publication, CTA garance.",
+      "html": "<button class=\"ds-btn-primary\">Publier ma première annonce</button>",
+      "css": ".ds-btn-primary { display: inline-block; border: 2px solid var(--color-encre); border-radius: 2px; background: var(--color-garance); color: var(--color-platre); padding: 16px 32px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 4px 4px 0 0 rgb(40 34 27 / 0.9); transition: all 0.2s ease; cursor: pointer; } .ds-btn-primary:hover { background: var(--color-garance-fonce); transform: translate(-0.125rem, -0.125rem); box-shadow: 6px 6px 0 0 rgb(40 34 27 / 0.9); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-ocre); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Bouton secondaire clair pour les actions de navigation ou de complément.",
+      "html": "<button class=\"ds-btn-secondary\">Voir les annonces</button>",
+      "css": ".ds-btn-secondary { display: inline-block; border: 2px solid var(--color-encre); border-radius: 2px; background: var(--color-platre); color: var(--color-encre); padding: 16px 32px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 4px 4px 0 0 rgb(40 34 27 / 0.35); transition: all 0.2s ease; cursor: pointer; } .ds-btn-secondary:hover { background: var(--color-platre-fonce); transform: translate(-0.125rem, -0.125rem); box-shadow: 6px 6px 0 0 rgb(40 34 27 / 0.35); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-outremer); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Champ de formulaire carré avec bordure encre et focus outremer.",
+      "html": "<label class=\"ds-label\" for=\"email\">Adresse email</label><input id=\"email\" class=\"ds-input\" type=\"email\" placeholder=\"vous@exemple.fr\" />",
+      "css": ".ds-label { display: block; margin-bottom: 8px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-encre); } .ds-input { width: 100%; border: 2px solid var(--color-encre); border-radius: 2px; background: #fbf7ec; padding: 10px 14px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.9rem; color: var(--color-encre); outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; } .ds-input:focus { border-color: var(--color-outremer); box-shadow: 3px 3px 0 0 rgb(30 63 140 / 0.35); }"
+    },
+    {
+      "name": "Listing Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Carte d'annonce avec plaque de catégorie peinte, prix et département.",
+      "html": "<a class=\"ds-card\" href=\"#\"><div class=\"ds-card-plaque\"><span>Légumes</span><span class=\"ds-plaque\">D 44</span></div><div class=\"ds-card-body\"><h3 class=\"ds-card-title\">Tomates anciennes bio</h3><p class=\"ds-card-meta\">Ferme de la Loire · Nantes</p><p class=\"ds-card-price\">4,50 €<span>/ kg</span></p></div></a>",
+      "css": ".ds-card { display: flex; flex-direction: column; border: 2px solid var(--color-encre); border-radius: 2px; background: #fbf7ec; color: var(--color-encre); text-decoration: none; box-shadow: 3px 3px 0 0 rgb(40 34 27 / 0.25); transition: all 0.2s ease; } .ds-card:hover { transform: translate(-0.125rem, -0.125rem); box-shadow: 6px 6px 0 0 rgb(40 34 27 / 0.9); } .ds-card-plaque { display: flex; align-items: center; justify-content: space-between; height: 96px; padding: 0 16px; background: var(--color-verdigris); color: var(--color-platre); border-bottom: 2px solid var(--color-encre); font-family: var(--font-affiche), Georgia, serif; font-size: 1.5rem; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; text-shadow: 0.06em 0.06em 0 rgb(40 34 27 / 0.4); } .ds-plaque { display: inline-flex; align-items: center; border: 2px solid var(--color-encre); border-radius: 2px; background: var(--color-ocre); padding: 1px 6px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; color: var(--color-encre); text-shadow: none; } .ds-card-body { display: flex; flex: 1; flex-direction: column; padding: 16px; } .ds-card-title { margin: 0; font-family: var(--font-affiche), Georgia, serif; font-size: 1.125rem; line-height: 1.3; color: var(--color-encre); } .ds-card-meta { margin: 4px 0 0; font-size: 0.75rem; font-weight: 500; color: var(--color-encre-doux); } .ds-card-price { margin-top: auto; padding-top: 12px; font-family: var(--font-affiche), Georgia, serif; font-size: 1.5rem; color: var(--color-garance); letter-spacing: 0.01em; font-variant-numeric: tabular-nums; } .ds-card-price span { margin-left: 4px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; color: var(--color-encre-doux); letter-spacing: normal; }"
+    },
+    {
+      "name": "Header",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Navigation sticky avec médaillon de marque, liens étiquette et CTA.",
+      "html": "<header class=\"ds-header\"><a class=\"ds-brand\" href=\"#\"><svg class=\"ds-logo\" viewBox=\"0 0 48 48\" aria-label=\"Fourchette &amp; Fourche\"><circle cx=\"24\" cy=\"24\" r=\"22\" fill=\"#1e3f8c\" stroke=\"#28221b\" stroke-width=\"2\"/><circle cx=\"24\" cy=\"24\" r=\"18.5\" fill=\"none\" stroke=\"#f1eada\" stroke-width=\"1.4\" opacity=\"0.85\"/><g stroke=\"#f1eada\" stroke-width=\"2.3\" stroke-linecap=\"round\" transform=\"rotate(-26 24 24)\"><line x1=\"24\" y1=\"20\" x2=\"24\" y2=\"39\"/><line x1=\"19.5\" y1=\"11\" x2=\"19.5\" y2=\"19\"/><line x1=\"24\" y1=\"10\" x2=\"24\" y2=\"19\"/><line x1=\"28.5\" y1=\"11\" x2=\"28.5\" y2=\"19\"/><path d=\"M19.5 19 Q24 22 28.5 19\" fill=\"none\"/></g><g stroke=\"#f1eada\" stroke-width=\"2.3\" stroke-linecap=\"round\" transform=\"rotate(26 24 24)\"><line x1=\"24\" y1=\"21\" x2=\"24\" y2=\"39\"/><line x1=\"20.2\" y1=\"12.5\" x2=\"20.2\" y2=\"19.5\"/><line x1=\"22.7\" y1=\"12\" x2=\"22.7\" y2=\"19.5\"/><line x1=\"25.3\" y1=\"12\" x2=\"25.3\" y2=\"19.5\"/><line x1=\"27.8\" y1=\"12.5\" x2=\"27.8\" y2=\"19.5\"/><path d=\"M20.2 19.5 Q24 22.5 27.8 19.5\" fill=\"none\"/></g></svg><span class=\"ds-brand-text\">Fourchette <span>&amp;</span> Fourche</span></a><nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"#\">Annonces</a><a class=\"ds-nav-link\" href=\"#\">Producteurs</a><a class=\"ds-nav-link\" href=\"#\">Connexion</a><a class=\"ds-nav-cta\" href=\"#\">Publier une annonce</a></nav></header>",
+      "css": ".ds-header { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 16px; border-bottom: 2px solid var(--color-encre); background: var(--color-platre); font-family: var(--font-texte), system-ui, sans-serif; } .ds-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--color-encre); } .ds-logo { width: 36px; height: 36px; flex-shrink: 0; } .ds-brand-text { font-family: var(--font-affiche), Georgia, serif; font-size: 1.25rem; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; color: var(--color-outremer); } .ds-brand-text span { color: var(--color-garance); } .ds-nav { display: flex; align-items: center; gap: 28px; } .ds-nav-link { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; color: var(--color-encre); transition: color 0.2s ease; } .ds-nav-link:hover { color: var(--color-garance); } .ds-nav-cta { display: inline-block; border: 2px solid var(--color-encre); border-radius: 2px; background: var(--color-garance); color: var(--color-platre); padding: 8px 16px; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; box-shadow: 4px 4px 0 0 rgb(40 34 27 / 0.9); transition: all 0.2s ease; } .ds-nav-cta:hover { background: var(--color-garance-fonce); transform: translate(-0.125rem, -0.125rem); box-shadow: 6px 6px 0 0 rgb(40 34 27 / 0.9); }"
+    },
+    {
+      "name": "Plaque départementale",
+      "kind": "custom",
+      "refersTo": "plaque-departement",
+      "description": "Petit panneau ocre identifiant un département, comme sur les routes départementales.",
+      "html": "<span class=\"ds-plaque-dept\">D 44</span>",
+      "css": ".ds-plaque-dept { display: inline-flex; align-items: center; flex-shrink: 0; border: 2px solid var(--color-encre); border-radius: 2px; background: var(--color-ocre); padding: 1px 6px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; color: var(--color-encre); vertical-align: middle; }"
+    },
+    {
+      "name": "Badge certification",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Petit badge de certification bio, légèrement penché comme une étiquette de marché.",
+      "html": "<span class=\"ds-badge\">Bio</span>",
+      "css": ".ds-badge { display: inline-block; transform: rotate(-1deg); border: 1px solid var(--color-verdigris); border-radius: 1px; padding: 1px 6px; font-family: var(--font-texte), system-ui, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-verdigris); }"
+    },
+    {
+      "name": "Hero Display",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "Titre monumental du héros, deux lignes de capitales peintes avec ombre-lettre.",
+      "html": "<h1 class=\"ds-hero\"><span class=\"ds-hero-line\">Vos produits.</span><span class=\"ds-hero-line ds-hero-accent\">Leurs cartes.</span></h1>",
+      "css": ".ds-hero { margin: 0; font-family: var(--font-affiche), Georgia, serif; font-size: clamp(2.9rem, 7vw, 4.5rem); font-weight: 400; line-height: 0.95; letter-spacing: -0.02em; text-transform: uppercase; color: var(--color-encre); } .ds-hero-line { display: block; text-shadow: 0.055em 0.055em 0 var(--color-ocre); } .ds-hero-accent { color: var(--color-garance); text-shadow: 0.055em 0.055em 0 rgb(40 34 27 / 0.3); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "L'Enseigne Peinte du Marché de Village",
+    "overview": "Fourchette & Fourche s'habille comme un mur de plâtre peint à la main par un lettreur français du milieu du XXe siècle. La typographie monumentale porte l'identité : pas de photos, pas de logos corporate, seulement des capitales peintes, des filets d'encre, des plaques de département ocres et des ombres-relief franches. L'interface doit rassurer un producteur pressé en deux secondes : ici, il vend aux restaurants du coin, il fixe ses prix, la commission est de 10 %, il n'y a pas d'abonnement.\n\nLe système est volontairement austère et chaleureux à la fois. Les surfaces ressemblent à des panneaux de bois ou d'émail cloués au mur ; les angles sont presque carrés, les bords sont marqués d'un trait épais, et les transitions restent rapides et utilitaires. La couleur est appliquée par rôles métier : outremer pour la marque et la géographie, garance pour l'action, ocre pour les repères départementaux, verdigris pour le bio et la validation.",
+    "keyCharacteristics": [
+      "Mur de plâtre comme toile de fond, encre noire comme trait dominant.",
+      "Caprasimo en capitales peintes pour les titres ; Chivo pour le corps et les étiquettes.",
+      "Angles quasi-carrés (2–4 px), bords de 2 px, ombres-relief décalées franches.",
+      "Carte interactive comme cœur du produit ; géographie avant catalogue.",
+      "Pictogrammes dessinés à la main (SVG) ; emojis réservés aux marqueurs de carte.",
+      "Aucune photo réelle, aucun héro centré à dégradé, aucune carte arrondie décorative."
+    ],
+    "rules": [
+      { "name": "The One-Garance Rule", "body": "Garance est réservée aux actions et aux prix. Elle ne décore pas ; elle incite ou elle affiche un coût.", "section": "colors" },
+      { "name": "The Category-Ink Rule", "body": "Chaque catégorie de produit a une encre fixe (COULEURS_CATEGORIES dans src/lib/constantes.ts). On ne réinvente pas la couleur d'une famille.", "section": "colors" },
+      { "name": "The Painted Capitals Rule", "body": "Les titres sont en capitales, en Caprasimo, avec un ombre-lettre ocre ou encre. Pas de casse mixte dans les grands titres.", "section": "typography" },
+      { "name": "The One-Line Label Rule", "body": "Les étiquettes (etiquette) sont petites, grasses, espacées, en capitales. Elles portent la hiérarchie secondaire, pas le contenu principal.", "section": "typography" },
+      { "name": "The Hard-Offset Shadow Rule", "body": "Les ombres sont des décalages pleins, sans flou. Elles rappellent une plaque émaillée clouée au mur, pas une carte Material levée.", "section": "elevation" },
+      { "name": "The No-Blur Rule", "body": "Pas d'ombres diffuses, pas de backdrop-filter, pas de glassmorphism. La profondeur se lit au trait, pas au flou.", "section": "elevation" },
+      { "name": "The Almost-Square Rule", "body": "Les coins sont presque droits (2–4 px). Une carte arrondie est une erreur dans ce monde.", "section": "shapes" },
+      { "name": "The Two-Pixel Ink Border Rule", "body": "Une bordure visible est toujours 2 px solide en encre. Pas de bordures fantômes, pas de séparateurs de 1 px gris.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do utiliser Caprasimo en capitales pour tout titre important, avec ombre-lettre ocre ou encre.",
+      "Do garder les coins à 2–4 px et les bordures à 2 px solides en encre.",
+      "Do utiliser garance pour les CTAs et les prix, outremer pour la marque et la carte, ocre pour les repères départementaux.",
+      "Do préférer les ombres-relief décalées (4–6 px, sans flou) pour suggérer des plaques.",
+      "Do utiliser les pictogrammes SVG dessinés à la main dans src/components/icones.tsx.",
+      "Do laisser le plâtre visible comme fond de page ; les blocs doivent ressembler à des panneaux posés sur un mur."
+    ],
+    "donts": [
+      "Don't utiliser de photos réelles, de logos stock ou d'assets de marque générés.",
+      "Don't centrer un héro sur gradient ou utiliser des cartes arrondies décoratives.",
+      "Don't utiliser d'emojis décoratifs en dehors des marqueurs de carte Leaflet.",
+      "Don't adoucir les ombres avec du blur ou du backdrop-filter.",
+      "Don't mélanger les encres de catégorie : chaque famille de produits a sa couleur fixe."
+    ]
+  }
+}

@@ -7,15 +7,15 @@ export default function ReinitialiserMotDePassePage() {
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-brun">
-          Choisis un nouveau mot de passe
+        <h1 className="font-affiche text-4xl leading-tight text-encre uppercase">
+          Nouveau mot de passe
         </h1>
-        <p className="mt-2 text-sm text-brun-clair">
-          Et cette fois, note-le quelque part. 😉
+        <p className="mt-3 text-sm text-encre-doux">
+          Et cette fois, notez-le quelque part.
         </p>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-creme-fonce bg-white p-6 shadow-sm md:p-8">
+      <div className="relief mt-8 border-2 border-encre bg-[#fbf7ec] p-6 md:p-8">
         <FormulaireReinitialisation />
       </div>
     </div>

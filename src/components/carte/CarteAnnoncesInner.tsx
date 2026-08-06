@@ -27,27 +27,27 @@ type Props = {
 // ---------- Styles de la carte ----------
 
 const styleRegion = {
-  color: "#2f5d3a",
+  color: "#1e3f8c",
   weight: 1.5,
-  fillColor: "#4c8a5c",
-  fillOpacity: 0.15,
+  fillColor: "#1e3f8c",
+  fillOpacity: 0.08,
 };
 
 const styleDepartement = {
-  color: "#2f5d3a",
+  color: "#1e3f8c",
   weight: 1.5,
-  fillColor: "#4c8a5c",
-  fillOpacity: 0.12,
+  fillColor: "#1e3f8c",
+  fillOpacity: 0.07,
 };
 
 const styleDepartementSelectionne = {
-  color: "#b8552f",
+  color: "#93290f",
   weight: 2.5,
-  fillColor: "#d96c47",
-  fillOpacity: 0.35,
+  fillColor: "#b93a1d",
+  fillOpacity: 0.3,
 };
 
-const styleSurvol = { fillOpacity: 0.45 };
+const styleSurvol = { fillOpacity: 0.38 };
 
 // ---------- Sous-composant : ajuste la vue quand la sélection change ----------
 
@@ -140,7 +140,7 @@ export default function CarteAnnoncesInner({
     };
   }, [depsGeo, regionSelectionnee]);
 
-  // Marqueurs des annonces
+  // Marqueurs des annonces : petites étiquettes d'étal
   const marqueurs = useMemo(
     () =>
       annonces
@@ -148,10 +148,10 @@ export default function CarteAnnoncesInner({
         .map((a) => {
           const cat = CATEGORIES[a.category] ?? CATEGORIES.AUTRE;
           const icone = L.divIcon({
-            html: `<div style="font-size:26px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))">${cat.emoji}</div>`,
+            html: `<div class="etiquette-etal" style="position:relative">${cat.emoji}</div>`,
             className: "",
-            iconSize: [30, 30],
-            iconAnchor: [15, 15],
+            iconSize: [30, 38],
+            iconAnchor: [15, 38],
           });
           return { annonce: a, icone };
         }),
@@ -159,7 +159,7 @@ export default function CarteAnnoncesInner({
   );
 
   return (
-    <div className="relative h-full min-h-80 overflow-hidden rounded-2xl border border-creme-fonce lg:min-h-[560px]">
+    <div className="relative h-[420px] overflow-hidden rounded-sm border-2 border-encre lg:h-[560px]">
       <MapContainer
         center={[46.7, 2.5]}
         zoom={6}
@@ -238,18 +238,18 @@ export default function CarteAnnoncesInner({
               <div style={{ minWidth: 160 }}>
                 <strong>{annonce.title}</strong>
                 <br />
-                <span style={{ color: "#2f5d3a", fontWeight: 700 }}>
+                <span style={{ color: "#b93a1d", fontWeight: 700 }}>
                   {formaterPrix(annonce.priceCents)} /{" "}
                   {UNITES[annonce.unit] ?? annonce.unit}
                 </span>
                 <br />
-                <span style={{ fontSize: 12, color: "#7a6a62" }}>
+                <span style={{ fontSize: 12, color: "#6b5f4e" }}>
                   {annonce.producer.displayName} · {annonce.city}
                 </span>
                 <br />
                 <a
                   href={`/annonces/${annonce.id}`}
-                  style={{ color: "#d96c47", fontWeight: 600 }}
+                  style={{ color: "#1e3f8c", fontWeight: 700 }}
                 >
                   Voir l&apos;annonce →
                 </a>
@@ -266,7 +266,7 @@ export default function CarteAnnoncesInner({
             onClick={() =>
               naviguer({ region: undefined, departement: undefined })
             }
-            className="rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-foret shadow-md transition-colors hover:bg-foret-pale"
+            className="rounded-sm border-2 border-encre bg-[#fbf7ec]/95 px-3 py-1.5 text-xs font-bold tracking-wide text-outremer uppercase shadow-[2px_2px_0_rgb(40_34_27/0.5)] transition-colors hover:bg-platre-fonce"
           >
             ← Toute la France
           </button>
@@ -274,17 +274,17 @@ export default function CarteAnnoncesInner({
         {departementSelectionne && (
           <button
             onClick={() => naviguer({ departement: undefined })}
-            className="rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-foret shadow-md transition-colors hover:bg-foret-pale"
+            className="rounded-sm border-2 border-encre bg-[#fbf7ec]/95 px-3 py-1.5 text-xs font-bold tracking-wide text-outremer uppercase shadow-[2px_2px_0_rgb(40_34_27/0.5)] transition-colors hover:bg-platre-fonce"
           >
             ← {nomRegion(regionSelectionnee ?? "")}
           </button>
         )}
-        <div className="rounded-lg bg-white/95 px-3 py-1.5 text-xs text-brun-clair shadow-md">
+        <div className="rounded-sm border-2 border-encre bg-ocre px-3 py-1.5 text-xs font-bold text-encre shadow-[2px_2px_0_rgb(40_34_27/0.5)]">
           {departementSelectionne
-            ? `📍 ${nomDepartement(departementSelectionne)}`
+            ? nomDepartement(departementSelectionne)
             : regionSelectionnee
-              ? `📍 ${nomRegion(regionSelectionnee)} — clique sur un département`
-              : "🗺️ Clique sur une région"}
+              ? `${nomRegion(regionSelectionnee)} — cliquez un département`
+              : "Cliquez une région"}
         </div>
       </div>
     </div>

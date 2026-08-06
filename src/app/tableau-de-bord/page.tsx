@@ -12,29 +12,29 @@ export default async function TableauDeBordPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brun">
-          Bonjour {user.displayName} 👋
+        <h1 className="font-affiche text-3xl text-encre uppercase">
+          Bonjour {user.displayName}
         </h1>
-        <p className="mt-1 text-sm text-brun-clair">
+        <p className="mt-1 text-sm text-encre-doux">
           {estProducteur
-            ? "Bienvenue sur ton espace producteur."
-            : "Bienvenue sur ton espace restaurateur."}
+            ? "Bienvenue sur votre espace producteur."
+            : "Bienvenue sur votre espace restaurateur."}
         </p>
       </div>
 
       {profilIncomplet && (
-        <div className="rounded-xl border border-terre-pale bg-terre-pale/40 p-5">
-          <p className="font-semibold text-terre-fonce">
-            📍 Dernière étape : ton adresse
+        <div className="relief-doux border-2 border-encre bg-ocre/20 p-5">
+          <p className="font-bold text-encre">
+            Dernière étape : votre adresse
           </p>
-          <p className="mt-1 text-sm text-brun">
+          <p className="mt-1 text-sm text-encre">
             {estProducteur
-              ? "Indique l'adresse de ton exploitation pour que les restaurateurs de ta région te trouvent sur la carte."
-              : "Indique l'adresse de ton restaurant pour voir les producteurs autour de toi."}
+              ? "Indiquez l'adresse de votre exploitation pour que les restaurateurs de votre région vous trouvent sur la carte."
+              : "Indiquez l'adresse de votre restaurant pour voir les producteurs autour de vous."}
           </p>
           <Link
             href="/tableau-de-bord/profil"
-            className="mt-3 inline-block rounded-full bg-terre px-5 py-2 text-sm font-semibold text-white hover:bg-terre-fonce"
+            className="mt-3 inline-block rounded-sm border-2 border-encre bg-garance px-5 py-2 text-sm font-bold tracking-wide text-platre uppercase transition-colors hover:bg-garance-fonce"
           >
             Compléter mon profil
           </Link>
@@ -44,20 +44,21 @@ export default async function TableauDeBordPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         {estProducteur ? (
           <>
-            <div className="rounded-xl border border-creme-fonce bg-white p-6">
-              <p className="text-3xl">🥕</p>
-              <h2 className="mt-2 font-titre text-lg font-bold">Mes annonces</h2>
-              <p className="mt-1 text-sm text-brun-clair">
-                Publie tes produits avec photos et prix. (Arrive à la phase 2 !)
+            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6">
+              <h2 className="font-affiche text-xl tracking-wide uppercase">
+                Mes annonces
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-encre-doux">
+                Publiez vos produits avec photos et prix. (Arrive à la
+                phase 2 !)
               </p>
             </div>
-            <div className="rounded-xl border border-creme-fonce bg-white p-6">
-              <p className="text-3xl">💶</p>
-              <h2 className="mt-2 font-titre text-lg font-bold">
+            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6">
+              <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Recevoir mes paiements
               </h2>
-              <p className="mt-1 text-sm text-brun-clair">
-                Active les paiements pour être payé directement. (Phase 5 !)
+              <p className="mt-2 text-sm leading-relaxed text-encre-doux">
+                Activez les paiements pour être payé directement. (Phase 5 !)
               </p>
             </div>
           </>
@@ -65,23 +66,21 @@ export default async function TableauDeBordPage() {
           <>
             <Link
               href="/annonces"
-              className="rounded-xl border border-creme-fonce bg-white p-6 transition-shadow hover:shadow-md"
+              className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6 transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_rgb(40_34_27/0.6)]"
             >
-              <p className="text-3xl">🗺️</p>
-              <h2 className="mt-2 font-titre text-lg font-bold">
+              <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Explorer les annonces
               </h2>
-              <p className="mt-1 text-sm text-brun-clair">
-                Découvre les producteurs de ta région sur la carte.
+              <p className="mt-2 text-sm leading-relaxed text-encre-doux">
+                Découvrez les producteurs de votre région sur la carte.
               </p>
             </Link>
-            <div className="rounded-xl border border-creme-fonce bg-white p-6">
-              <p className="text-3xl">📦</p>
-              <h2 className="mt-2 font-titre text-lg font-bold">
+            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6">
+              <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Mes commandes
               </h2>
-              <p className="mt-1 text-sm text-brun-clair">
-                Suis tes commandes en cours. (Phase 5 !)
+              <p className="mt-2 text-sm leading-relaxed text-encre-doux">
+                Suivez vos commandes en cours. (Phase 5 !)
               </p>
             </div>
           </>

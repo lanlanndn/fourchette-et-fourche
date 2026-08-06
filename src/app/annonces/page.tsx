@@ -35,12 +35,13 @@ export default async function AnnoncesPage({ searchParams }: Props) {
       : "France entière";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-brun">
-          Les annonces <span className="text-foret">· {zone}</span>
+        <h1 className="font-affiche text-4xl text-encre uppercase md:text-5xl">
+          Les annonces{" "}
+          <span className="text-outremer">· {zone}</span>
         </h1>
-        <p className="mt-1 text-sm text-brun-clair">
+        <p className="mt-2 text-sm font-medium text-encre-doux">
           {annonces.length} annonce{annonces.length > 1 ? "s" : ""} de
           producteurs locaux
         </p>
@@ -54,7 +55,7 @@ export default async function AnnoncesPage({ searchParams }: Props) {
         />
       </Suspense>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-2">
+      <div className="mt-8 grid gap-8 lg:grid-cols-2">
         {/* Carte interactive */}
         <div className="lg:sticky lg:top-20 lg:self-start">
           <Suspense>
@@ -69,18 +70,17 @@ export default async function AnnoncesPage({ searchParams }: Props) {
         {/* Liste des annonces */}
         <div>
           {annonces.length === 0 ? (
-            <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-creme-fonce bg-white p-8 text-center">
-              <p className="text-4xl">🧺</p>
-              <p className="mt-4 font-semibold text-brun">
-                Aucune annonce ici pour le moment
+            <div className="flex h-64 flex-col items-center justify-center border-2 border-encre bg-platre-fonce/50 p-8 text-center">
+              <p className="font-affiche text-3xl tracking-wide text-encre uppercase">
+                Panier vide
               </p>
-              <p className="mt-1 text-sm text-brun-clair">
-                Essaie une autre région, un autre département ou une autre
-                catégorie.
+              <p className="mt-2 text-sm text-encre-doux">
+                Aucune annonce ici pour le moment — essayez une autre région,
+                un autre département ou une autre catégorie.
               </p>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               {annonces.map((annonce) => (
                 <CarteAnnonce key={annonce.id} annonce={annonce} />
               ))}

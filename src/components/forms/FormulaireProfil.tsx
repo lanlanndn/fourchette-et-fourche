@@ -7,9 +7,8 @@ import { CERTIFICATIONS } from "@/lib/constantes";
 import MessageFormulaire from "@/components/forms/MessageFormulaire";
 import BoutonEnvoi from "@/components/forms/BoutonEnvoi";
 
-const classeChamp =
-  "w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret";
-const classeLabel = "mb-1.5 block text-sm font-semibold text-brun";
+const classeChamp = "champ focus:champ-focus";
+const classeLabel = "libelle mb-2";
 
 export default function FormulaireProfil({ user }: { user: User }) {
   const [etat, action, enCours] = useActionState(updateProfilAction, null);
@@ -36,7 +35,10 @@ export default function FormulaireProfil({ user }: { user: User }) {
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="phone" className={classeLabel}>
-            Téléphone <span className="font-normal text-brun-clair">(facultatif)</span>
+            Téléphone{" "}
+            <span className="font-medium normal-case tracking-normal text-encre-doux">
+              (facultatif)
+            </span>
           </label>
           <input
             id="phone"
@@ -49,7 +51,10 @@ export default function FormulaireProfil({ user }: { user: User }) {
         </div>
         <div>
           <label htmlFor="siret" className={classeLabel}>
-            SIRET <span className="font-normal text-brun-clair">(facultatif)</span>
+            SIRET{" "}
+            <span className="font-medium normal-case tracking-normal text-encre-doux">
+              (facultatif)
+            </span>
           </label>
           <input
             id="siret"
@@ -76,15 +81,18 @@ export default function FormulaireProfil({ user }: { user: User }) {
           placeholder="Ex : 12 rue des Lilas, 44000 Nantes"
           className={classeChamp}
         />
-        <p className="mt-1.5 text-xs text-brun-clair">
-          📍 Elle sert à te placer sur la carte. Elle sera visible par les
+        <p className="mt-1.5 text-xs text-encre-doux">
+          Elle sert à vous placer sur la carte. Elle sera visible par les
           autres professionnels.
         </p>
       </div>
 
       <div>
         <label htmlFor="bio" className={classeLabel}>
-          Présentation <span className="font-normal text-brun-clair">(facultatif)</span>
+          Présentation{" "}
+          <span className="font-medium normal-case tracking-normal text-encre-doux">
+            (facultatif)
+          </span>
         </label>
         <textarea
           id="bio"
@@ -107,18 +115,16 @@ export default function FormulaireProfil({ user }: { user: User }) {
             {CERTIFICATIONS.map((cert) => (
               <label
                 key={cert.id}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-creme-fonce bg-white px-3 py-2.5 text-sm transition-colors hover:border-foret-clair has-checked:border-foret has-checked:bg-foret-pale/40"
+                className="flex cursor-pointer items-center gap-2 rounded-sm border-2 border-encre/25 bg-[#fbf7ec] px-3 py-2.5 text-sm font-medium transition-colors hover:border-verdigris has-checked:border-verdigris has-checked:bg-verdigris/10"
               >
                 <input
                   type="checkbox"
                   name="certifications"
                   value={cert.id}
                   defaultChecked={user.certifications.includes(cert.id)}
-                  className="accent-foret"
+                  className="accent-verdigris"
                 />
-                <span>
-                  {cert.emoji} {cert.label}
-                </span>
+                <span>{cert.label}</span>
               </label>
             ))}
           </div>

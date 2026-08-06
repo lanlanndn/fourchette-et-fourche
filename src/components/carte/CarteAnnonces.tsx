@@ -7,8 +7,10 @@ import dynamic from "next/dynamic";
 const CarteAnnoncesInner = dynamic(() => import("./CarteAnnoncesInner"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full min-h-80 items-center justify-center rounded-2xl border border-creme-fonce bg-foret-pale/30 text-sm text-brun-clair">
-      🗺️ Chargement de la carte…
+    <div className="flex h-[420px] items-center justify-center rounded-sm border-2 border-encre bg-platre-fonce/60 lg:h-[560px]">
+      <span className="etiquette text-encre-doux">
+        Chargement de la carte…
+      </span>
     </div>
   ),
 });

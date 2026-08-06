@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getProducteur } from "@/lib/donnees";
 import { nomDepartement, nomRegion } from "@/lib/geo-metadata";
 import CarteAnnonce from "@/components/CarteAnnonce";
+import PlaqueDepartement from "@/components/PlaqueDepartement";
+import { IconeFourche } from "@/components/icones";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -33,34 +35,39 @@ export default async function ProducteurPublicPage({ params }: Props) {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <Link
         href="/producteurs"
-        className="text-sm font-medium text-brun-clair hover:text-foret"
+        className="etiquette text-encre-doux transition-colors hover:text-garance"
       >
         ← Tous les producteurs
       </Link>
 
       {/* En-tête du profil */}
-      <div className="mt-4 rounded-2xl border border-creme-fonce bg-white p-8">
+      <div className="relief mt-6 border-2 border-encre bg-[#fbf7ec] p-8">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-foret-pale text-4xl">
-            🚜
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-sm border-2 border-encre bg-ocre/25 text-encre">
+            <IconeFourche className="h-11 w-11" />
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-brun">{prod.displayName}</h1>
-            <p className="mt-1 text-sm text-brun-clair">
-              📍 {prod.city} — {nomDepartement(prod.departement ?? "")},{" "}
+            <h1 className="font-affiche text-4xl leading-tight text-encre uppercase">
+              {prod.displayName}
+            </h1>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-encre-doux">
+              {prod.city} — {nomDepartement(prod.departement ?? "")},{" "}
               {nomRegion(prod.region ?? "")}
+              {prod.departement && (
+                <PlaqueDepartement code={prod.departement} />
+              )}
             </p>
             {prod.certifications.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 {prod.certifications.map((cert) => (
                   <span
                     key={cert}
-                    className="rounded-full bg-foret-pale px-2.5 py-1 text-xs font-semibold text-foret"
+                    className="-rotate-1 rounded-xs border border-verdigris px-2 py-0.5 text-xs font-bold tracking-wider text-verdigris uppercase"
                   >
-                    {cert === "BIO" ? "🌿 Bio" : `🏅 ${cert.replace("_", " ")}`}
+                    {cert === "BIO" ? "Bio" : cert.replace("_", " ")}
                   </span>
                 ))}
               </div>
@@ -68,17 +75,18 @@ export default async function ProducteurPublicPage({ params }: Props) {
           </div>
         </div>
         {prod.bio && (
-          <p className="mt-6 border-t border-creme-fonce pt-6 text-sm leading-relaxed text-brun">
+          <p className="mt-6 border-t-2 border-encre/10 pt-6 text-sm leading-relaxed text-encre">
             {prod.bio}
           </p>
         )}
       </div>
 
       {/* Ses annonces */}
-      <h2 className="mt-10 font-titre text-2xl font-bold text-brun">
-        Ses annonces ({prod.listings.length})
+      <h2 className="mt-12 font-affiche text-3xl text-encre uppercase">
+        Ses annonces{" "}
+        <span className="prix-peint text-garance">({prod.listings.length})</span>
       </h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {annoncesAvecProducteur.map((annonce) => (
           <CarteAnnonce key={annonce.id} annonce={annonce} />
         ))}

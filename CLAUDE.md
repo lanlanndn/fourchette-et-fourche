@@ -31,7 +31,7 @@
 | Couche | Choix | Pourquoi |
 |---|---|---|
 | Framework | Next.js 15 (App Router) + TypeScript strict + React 19 | Standard, IA-friendly |
-| Style | Tailwind CSS **v4** (thème dans `src/app/globals.css` via `@theme`) | Palette custom : `foret` (vert), `terre` (terracotta), `creme`, `brun` |
+| Style | Tailwind CSS **v4** (thème dans `src/app/globals.css` via `@theme`) | Monde « Enseigne peinte » : palette `platre`, `outremer`, `garance`, `ocre`, `encre` — **voir `DESIGN.md`** (redesign 6 août 2026) |
 | BDD + Auth + Storage | **Supabase** (PostgreSQL + Auth + Storage photos) | Gratuit, tout-en-un |
 | ORM | Prisma 6 (`prisma/schema.prisma`) | Migrations simples |
 | Paiement | Stripe Connect (destination charges, `application_fee_amount`) | Phase 5 — pas encore installé |
@@ -87,7 +87,7 @@
 - Marqueurs : `L.divIcon` avec l'emoji de la catégorie (pas d'icône PNG Leaflet).
 
 ### Styles
-- Classes Tailwind avec la palette du thème (`bg-foret`, `text-terre`, `bg-creme`…). Polices : Fraunces (titres, `--font-titre`) + Inter (texte) via `next/font/google`.
+- Classes Tailwind avec la palette du thème (`bg-platre`, `text-garance`, `bg-outremer`…). Polices : Caprasimo (capitales peintes, `--font-affiche`) + Chivo (texte) via `next/font/google`. **Le système visuel complet est documenté dans `DESIGN.md`** (monde « Enseigne peinte » : angles presque carrés, bordures encre 2 px, ombres-relief franches, plaques départementales ocres, zéro photo, icônes SVG dessinées dans `src/components/icones.tsx`). Contrat de direction : commentaire HTML en tête de `<body>` dans `src/app/layout.tsx` (seed d5e83781). Vérité produit : `PRODUCT.md`.
 
 ---
 
@@ -128,4 +128,4 @@ Ensuite :
 
 ---
 
-*Dernière mise à jour : 6 août 2026 — après le mode démo.*
+*Dernière mise à jour : 6 août 2026 — après le redesign « Enseigne peinte » (skill impeccable, DESIGN.md + PRODUCT.md créés).*

@@ -14,7 +14,7 @@ export default function FormulaireReinitialisation() {
   return (
     <form action={action} className="space-y-5">
       <div>
-        <label htmlFor="motDePasse" className="mb-1.5 block text-sm font-semibold text-brun">
+        <label htmlFor="motDePasse" className="libelle mb-2">
           Nouveau mot de passe
         </label>
         <input
@@ -25,7 +25,7 @@ export default function FormulaireReinitialisation() {
           minLength={8}
           autoComplete="new-password"
           placeholder="8 caractères minimum"
-          className="w-full rounded-lg border border-creme-fonce bg-white px-4 py-2.5 text-sm outline-none transition-colors focus:border-foret"
+          className="champ focus:champ-focus"
         />
       </div>
 

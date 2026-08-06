@@ -8,22 +8,25 @@ export default function InscriptionPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-brun">
-          Rejoins Fourchette &amp; Fourche
+        <h1 className="font-affiche text-4xl leading-tight text-encre uppercase">
+          Rejoignez le marché
         </h1>
-        <p className="mt-2 text-sm text-brun-clair">
-          Gratuit, sans engagement. Ton compte en 2 minutes.
+        <p className="mt-3 text-sm text-encre-doux">
+          Gratuit, sans engagement. Votre compte en 2 minutes.
         </p>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-creme-fonce bg-white p-6 shadow-sm md:p-8">
+      <div className="relief mt-8 border-2 border-encre bg-[#fbf7ec] p-6 md:p-8">
         <FormulaireInscription />
       </div>
 
-      <p className="mt-6 text-center text-sm text-brun-clair">
+      <p className="mt-6 text-center text-sm text-encre-doux">
         Déjà un compte ?{" "}
-        <Link href="/connexion" className="font-semibold text-foret underline">
-          Connecte-toi
+        <Link
+          href="/connexion"
+          className="font-bold text-outremer underline decoration-2 underline-offset-2 hover:text-garance"
+        >
+          Connectez-vous
         </Link>
       </p>
     </div>
