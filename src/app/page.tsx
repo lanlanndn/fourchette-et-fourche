@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { listerAnnonces } from "@/lib/donnees";
+import CarteAnnonce from "@/components/CarteAnnonce";
 
 const categories = [
   { emoji: "🥕", label: "Légumes" },
@@ -15,7 +17,9 @@ const categories = [
   { emoji: "🫒", label: "Huile" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const dernieresAnnonces = (await listerAnnonces()).slice(0, 6);
+
   return (
     <div>
       {/* ===== Héros ===== */}
@@ -167,6 +171,39 @@ export default function Home() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ===== Dernières annonces ===== */}
+      <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
+        <div className="flex items-end justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-brun">
+              Fraîchement arrivées
+            </h2>
+            <p className="mt-2 text-brun-clair">
+              Les dernières annonces publiées par nos producteurs.
+            </p>
+          </div>
+          <Link
+            href="/annonces"
+            className="hidden shrink-0 rounded-full border-2 border-foret px-5 py-2 text-sm font-semibold text-foret transition-colors hover:bg-foret-pale sm:block"
+          >
+            Tout voir →
+          </Link>
+        </div>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {dernieresAnnonces.map((annonce) => (
+            <CarteAnnonce key={annonce.id} annonce={annonce} />
+          ))}
+        </div>
+        <div className="mt-8 text-center sm:hidden">
+          <Link
+            href="/annonces"
+            className="inline-block rounded-full border-2 border-foret px-5 py-2 text-sm font-semibold text-foret"
+          >
+            Tout voir →
+          </Link>
         </div>
       </section>
 
