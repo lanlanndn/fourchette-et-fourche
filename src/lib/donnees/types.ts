@@ -22,4 +22,7 @@ export type FiltresAnnonces = {
   departement?: string;
   region?: string;
   recherche?: string;
+  lat?: number;
+  lng?: number;
+  rayonKm?: number;
 };

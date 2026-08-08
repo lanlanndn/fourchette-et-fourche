@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  Circle,
   GeoJSON,
   MapContainer,
   Marker,
@@ -56,15 +57,26 @@ function GestionVue({
   depsGeo,
   regionSelectionnee,
   departementSelectionne,
+  centre,
 }: {
   regionsGeo: FeatureCollection | null;
   depsGeo: FeatureCollection | null;
   regionSelectionnee?: string;
   departementSelectionne?: string;
+  centre?: { lat: number; lng: number; rayon: number } | null;
 }) {
   const map = useMap();
 
   useEffect(() => {
+    if (centre) {
+      // Ajuster le zoom pour voir le cercle entier
+      const rayonMetres = centre.rayon * 1000;
+      map.fitBounds(
+        L.latLng(centre.lat, centre.lng).toBounds(rayonMetres * 2.2),
+        { padding: [24, 24], maxZoom: 13 },
+      );
+      return;
+    }
     if (departementSelectionne && depsGeo) {
       const dep = depsGeo.features.find(
         (f) => f.properties?.code === departementSelectionne,
@@ -85,7 +97,7 @@ function GestionVue({
     }
     // Vue par défaut : la France entière
     map.setView([46.7, 2.5], 6);
-  }, [map, regionsGeo, depsGeo, regionSelectionnee, departementSelectionne]);
+  }, [map, regionsGeo, depsGeo, regionSelectionnee, departementSelectionne, centre]);
 
   return null;
 }
@@ -101,6 +113,15 @@ export default function CarteAnnoncesInner({
   const searchParams = useSearchParams();
   const [regionsGeo, setRegionsGeo] = useState<FeatureCollection | null>(null);
   const [depsGeo, setDepsGeo] = useState<FeatureCollection | null>(null);
+
+  // Centre de recherche (filtre par distance)
+  const centreLat = searchParams.get("lat");
+  const centreLng = searchParams.get("lng");
+  const centreRayon = searchParams.get("rayon");
+  const aUnCentre = centreLat && centreLng && centreRayon;
+  const centre = aUnCentre
+    ? { lat: parseFloat(centreLat!), lng: parseFloat(centreLng!), rayon: parseInt(centreRayon!, 10) }
+    : null;
 
   // Charge les contours de France au démarrage
   useEffect(() => {
@@ -176,7 +197,34 @@ export default function CarteAnnoncesInner({
           depsGeo={depsGeo}
           regionSelectionnee={regionSelectionnee}
           departementSelectionne={departementSelectionne}
+          centre={centre}
         />
+
+        {/* Cercle de recherche (filtre par distance) */}
+        {centre && (
+          <>
+            <Circle
+              center={[centre.lat, centre.lng]}
+              radius={centre.rayon * 1000}
+              pathOptions={{
+                color: "#1e3f8c",
+                fillColor: "#1e3f8c",
+                fillOpacity: 0.08,
+                weight: 2,
+                dashArray: "6 4",
+              }}
+            />
+            <Marker
+              position={[centre.lat, centre.lng]}
+              icon={L.divIcon({
+                html: '<div style="width:12px;height:12px;border-radius:50%;background:#b93a1d;border:2px solid #f1eada;box-shadow:0 0 0 2px #28221b"></div>',
+                className: "",
+                iconSize: [12, 12],
+                iconAnchor: [6, 6],
+              })}
+            />
+          </>
+        )}
 
         {/* Contours des régions (France entière) */}
         {!regionSelectionnee && regionsGeo && (

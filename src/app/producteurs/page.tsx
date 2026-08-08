@@ -4,7 +4,10 @@ import { listerProducteurs } from "@/lib/donnees";
 import PlaqueDepartement from "@/components/PlaqueDepartement";
 import { IconeFourche } from "@/components/icones";
 
-export const metadata: Metadata = { title: "Producteurs" };
+export const metadata: Metadata = {
+  title: "Producteurs",
+  description: "Découvrez les producteurs locaux près de chez vous. Maraîchers, éleveurs, fromagers, vignerons… tous passionnés et engagés pour une agriculture de qualité.",
+};
 
 export default async function ProducteursPage() {
   const producteurs = await listerProducteurs();

@@ -50,20 +50,24 @@
 
 ### ✅ Terminé et vérifié (build OK, pages testées 200)
 - **Phase 0 — Fondations** : projet complet, page d'accueil, header/footer, pages légales (gabarits), git initialisé.
-- **Phase 1 — Comptes (CODE ÉCRIT, NON TESTÉ EN CONDITIONS RÉELLES)** : inscription (choix rôle producteur/restaurateur, producteur en premier), connexion, mot de passe oublié, tableau de bord protégé, profil avec géocodage d'adresse. **En attente d'une instance Supabase pour être testé.**
-- **Mode démo (choix de Landry)** : 8 producteurs + 16 annonces d'exemple (`src/lib/donnees/demo.ts`), page `/annonces` avec **carte interactive cliquable** (région → département → annonces filtrées), filtres (catégorie/département/recherche), fiches `/annonces/[id]`, annuaire `/producteurs` + `/producteurs/[id]`, carte + section « Fraîchement arrivées » sur l'accueil, bandeau « Mode démo » (plaque ocre).
-- **Redesign « Enseigne peinte » (6 août 2026, skill impeccable)** : tout le site refait dans le monde visuel choisi par Landry (murs publicitaires peints 1900-1970) — mur de plâtre, capitales Caprasimo ombrées, encres outremer/garance/ocre, plaques départementales jaunes, étiquettes d'étal, médaillon fourchette×fourche dessiné (`MarqueFF.tsx`). Relecture de finition : verdict **ship**. Zéro photo (aucun asset réel) : la typographie et les plaques portent tout. Système documenté dans `DESIGN.md`, contrat de direction en commentaire HTML dans `src/app/layout.tsx` (seed d5e83781, vérifié présent dans le build).
+- **Phase 1 — Comptes** : inscription (choix rôle producteur/restaurateur), connexion, mot de passe oublié, tableau de bord protégé, profil avec géocodage d'adresse. **Supabase Cloud configuré et testé.**
+- **Phase 2 — Annonces** : création/édition d'annonces avec upload photos (Supabase Storage, drag & drop), liste des annonces dans le tableau de bord, activation/désactivation, bucket `annonces` avec RLS. Pages : `/tableau-de-bord/annonces`, `/tableau-de-bord/annonces/nouvelle`, `/tableau-de-bord/annonces/[id]/modifier`. Composants : `FormulaireAnnonce.tsx`, `UploadPhotos.tsx`.
+- **Phase 3 — Carte** : bouton « Autour de moi » avec géolocalisation navigateur + fallback saisie ville, cercle de recherche sur la carte, sélecteur de rayon (5-100 km), filtre haversine (`src/lib/haversine.ts`), filtres responsives (repliables sur mobile), marqueur de centre de recherche. Filtres placés dans la colonne de droite à côté de la carte sur desktop.
+- **Phase 4 — Messagerie** : conversations entre restaurateurs et producteurs, bouton « Contacter le producteur » sur les fiches annonces, badge de messages non lus dans le menu, pages `/tableau-de-bord/messagerie` et `/tableau-de-bord/messagerie/[id]`. Actions : `createOrGetConversationAction`, `sendMessageAction`, `markConversationAsRead`, `countUnreadMessages`.
+- **Header intelligent** : le header affiche « Tableau de bord » + « Déconnexion » quand l'utilisateur est connecté, « Connexion » + « Publier une annonce » quand il ne l'est pas.
+- **Mode démo (choix de Landry)** : 8 producteurs + 16 annonces d'exemple dans `src/lib/donnees/demo.ts`. Le mode démo s'active quand `DATABASE_URL` n'est pas configurée.
+- **Redesign « Enseigne peinte » (6 août 2026, skill impeccable)** : monde visuel complet (voir `DESIGN.md`), contrat de direction dans `src/app/layout.tsx` (seed d5e83781).
+- **Phase 6 — Finitions** : SEO (métadonnées enrichies, sitemap.xml, robots.txt), page 404 personnalisée.
 
-### ⏳ À faire (dans l'ordre prévu)
-- **Phase 2** : branchement Supabase (voir §6) → test Phase 1 → création/édition d'annonces avec upload photos (Supabase Storage) depuis le tableau de bord. **Note design** : quand les photos arrivent, elles remplacent la plaque couleur des cartes d'annonces (slot prévu, voir `DESIGN.md`).
-- **Phase 3** : finaliser la carte avec vraies données + filtre par rayon (haversine).
-- **Phase 4** : messagerie (tables déjà dans le schéma) + notifications email Resend.
-- **Phase 5** : commandes + Stripe Connect (mode test, clés `sk_test`), onboarding producteur, webhook `/api/webhooks/stripe`, remboursements. Prérequis humain : statut auto-entrepreneur de Landry + compte Stripe.
-- **Phase 6** : finitions (emails transactionnels, SEO, responsive, guide final).
+### ⏳ À faire (quand Landry sera prêt)
+- **Phase 5** : commandes + Stripe Connect (mode test, clés `sk_test`), onboarding producteur, webhook `/api/webhooks/stripe`. Prérequis : statut auto-entrepreneur + compte Stripe.
+- **Resend** : emails transactionnels (notifications de nouveaux messages, confirmation de commande). Prérequis : compte Resend (gratuit, 100 emails/jour).
+- **Mise en ligne** : dépôt GitHub, déploiement Vercel, domaine.
 
-### Dépôts / comptes
-- Git **local** initialisé (branche `main`, 3 commits). **Pas encore de GitHub distant ni de Vercel** — à créer avec Landry quand il voudra mettre en ligne.
-- **Aucun compte externe créé** pour l'instant (ni Supabase, ni Stripe, ni Resend).
+### Dépôts / comptes créés
+- **Supabase Cloud** : projet `tnwefomjxcbsallmcsvf` — base PostgreSQL, Auth, Storage (bucket `annonces`), RLS.
+- **Git** : local sur `main`. **Pas encore de GitHub distant ni de Vercel**.
+- **Stripe / Resend** : pas encore créés.
 
 ---
 
@@ -85,10 +89,22 @@
 
 ### Carte (`src/components/carte/`)
 - `CarteAnnonces.tsx` = wrapper `next/dynamic` **ssr:false** (Leaflet exige le navigateur) ; la logique est dans `CarteAnnoncesInner.tsx`.
+- `BoutonAutourDeMoi.tsx` = bouton de géolocalisation navigateur + fallback saisie ville avec autocomplétion (`suggererAdresses()` de `geo.ts`).
+- `FiltresAnnonces.tsx` = barre de recherche, filtres catégorie/département, bouton « Autour de moi ». Repliable sur mobile (bouton « Filtres »).
 - Contours : `public/geojson/regions.geojson` (13 régions) et `departements.geojson` (96 dép., métropole seulement) — source : github.com/gregoiredavid/france-geojson (version simplifiée). ⚠️ `geo.api.gouv.fr?format=geojson` ne renvoie PAS les géométries, seulement les métadonnées (conservées dans `regions.json` / `departements.json` pour les listes).
-- La sélection pilote l'URL (`?region=…&departement=…`) via `router.push` ; la page serveur refiltre.
+- La sélection pilote l'URL (`?region=…&departement=…&lat=…&lng=…&rayon=…`) via `router.push` ; la page serveur refiltre.
+- Filtre par distance : fonction `distanceKm()` dans `src/lib/haversine.ts`, appliquée en post-filtrage dans `listerAnnonces()` (les deux branches : démo et Prisma).
 - Marqueurs : `L.divIcon` avec l'emoji de la catégorie dans une **étiquette d'étal** crème (classe `.etiquette-etal` de `globals.css`) — c'est la SEULE place où les emojis sont admis (pictogrammes fonctionnels).
 - **Le conteneur de la carte exige une hauteur définie** (`h-[420px] lg:h-[560px]`) : jamais `h-full` vers un parent sans hauteur (voir §7).
+
+### Annonces (`src/lib/actions/annonces.ts`, `src/components/forms/`)
+- `FormulaireAnnonce.tsx` = formulaire client partagé création/édition (titre, catégorie, prix, unité, quantité, certifications, adresse).
+- `UploadPhotos.tsx` = upload direct navigateur → Supabase Storage (bucket `annonces`, dossier `{userId}/`), drag & drop, prévisualisation, 8 photos max.
+- `BoutonContacter.tsx` = bouton « Contacter le producteur » sur les fiches annonces, ouvre un formulaire de premier message.
+
+### Messagerie (`src/lib/actions/messagerie.ts`, `src/app/tableau-de-bord/messagerie/`)
+- Actions : `createOrGetConversationAction` (crée ou retrouve une conversation + premier message), `sendMessageAction`, `markConversationAsRead`, `countUnreadMessages`.
+- Badge de messages non lus dans le menu latéral du tableau de bord (pastille garance).
 
 ### Styles — monde « Enseigne peinte » (voir `DESIGN.md`, la référence)
 - Palette du thème (`bg-platre`, `text-garance`, `bg-outremer`, `text-encre`…) définie dans `src/app/globals.css`. Polices : Caprasimo (`--font-affiche`, capitales peintes) + Chivo (`--font-texte`) via `next/font/google`.
@@ -125,6 +141,10 @@ Ensuite :
 - **Ne JAMAIS lancer `npm run build` pendant que `npm run dev` tourne** : les deux partagent `.next` → le site casse dans le navigateur (« Cannot find module './XXX.js' »). Réparation : arrêter le dev, `rm -rf .next`, relancer le dev.
 - **Carte Leaflet invisible** si sa hauteur vient de `h-full`/`min-h` vers un parent sans hauteur définie (le % ne se résout pas → 0 px). Le conteneur porte sa propre hauteur fixe (`h-[420px] lg:h-[560px]`) ; pour l'intégrer dans un cadre (accueil), forcer avec `[&>div]:!h-full`.
 - **Navigateur par défaut de la machine sous VPN** : les URL locales (`localhost`, `127.0.0.1`) ne s'y ouvrent pas (`xdg-open` inutile). Utiliser **`chromium`** directement — aussi pour les captures d'écran : `chromium --headless --no-sandbox --hide-scrollbars --virtual-time-budget=20000 --window-size=1440,900 --screenshot=out.png URL`.
+- **`revalidatePath` interdit pendant le rendu** : pas de `revalidatePath` dans une fonction appelée directement par un Server Component (ex. `markConversationAsRead`). Next.js 15 le bloque. Le faire dans une Server Action appelée par un client component, ou l'omettre.
+- **Supabase Storage upload** : le client browser (`createBrowserClient`) upload directement, les fichiers vont dans des dossiers par `userId`. La RLS vérifie que `(storage.foldername(name))[1] = auth.uid()::text`.
+- **Prisma n'a pas de `postalCode` sur `Listing`** (contrairement à `User`) — ne pas l'inclure dans les `create`/`update`.
+- **Prix** : le formulaire envoie `prixEuros` (string avec virgule française), l'action serveur convertit en `priceCents` (entier).
 - **Tailwind v4** : les classes maison se définissent avec `@utility` dans `globals.css` (pas `@layer` seul si on veut les variantes `hover:`/`focus:`).
 
 ---
@@ -140,4 +160,4 @@ Ensuite :
 
 ---
 
-*Dernière mise à jour : 7 août 2026 — consolidation complète après le redesign « Enseigne peinte ».*
+*Dernière mise à jour : 7 août 2026 — Phases 0-1-2-3-4-6 terminées. Supabase opérationnel, annonces avec photos, carte avec géolocalisation, messagerie, SEO.*

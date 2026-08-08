@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { distanceKm } from "@/lib/haversine";
 import { ANNONCES_DEMO, PRODUCTEURS_DEMO } from "./demo";
 import type {
   AnnonceAvecProducteur,
@@ -47,6 +48,15 @@ export async function listerAnnonces(
           a.producer.displayName.toLowerCase().includes(q),
       );
     }
+    if (filtres.lat && filtres.lng && filtres.rayonKm) {
+      annonces = annonces.filter(
+        (a) =>
+          a.lat &&
+          a.lng &&
+          distanceKm(filtres.lat!, filtres.lng!, a.lat, a.lng) <=
+            filtres.rayonKm!,
+      );
+    }
 
     return annonces.sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
@@ -85,6 +95,18 @@ export async function listerAnnonces(
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Filtre par distance (post-filtrage en mémoire — PostGIS n'est pas activé)
+  if (filtres.lat && filtres.lng && filtres.rayonKm) {
+    return annonces.filter(
+      (a) =>
+        a.lat &&
+        a.lng &&
+        distanceKm(filtres.lat!, filtres.lng!, a.lat, a.lng) <=
+          filtres.rayonKm!,
+    );
+  }
+
   return annonces;
 }
 
@@ -137,5 +159,35 @@ export async function getProducteur(
     include: {
       listings: { where: { isActive: true }, orderBy: { createdAt: "desc" } },
     },
+  });
+}
+
+// ---------- Annonces d'un producteur ----------
+
+export async function listerAnnoncesProducteur(
+  producteurId: string,
+): Promise<AnnonceAvecProducteur[]> {
+  if (MODE_DEMO) {
+    return ANNONCES_DEMO.filter((a) => a.producerId === producteurId).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+  }
+  return prisma.listing.findMany({
+    where: { producerId: producteurId },
+    include: {
+      producer: {
+        select: {
+          id: true,
+          displayName: true,
+          city: true,
+          departement: true,
+          region: true,
+          certifications: true,
+          bio: true,
+          avatarUrl: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
   });
 }

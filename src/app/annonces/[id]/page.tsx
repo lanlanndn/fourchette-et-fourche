@@ -9,8 +9,10 @@ import {
   formaterPrix,
 } from "@/lib/constantes";
 import { nomDepartement } from "@/lib/geo-metadata";
+import { getCurrentUser } from "@/lib/auth";
 import PlaqueDepartement from "@/components/PlaqueDepartement";
 import { IconeFourche } from "@/components/icones";
+import BoutonContacter from "@/components/BoutonContacter";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -31,6 +33,8 @@ export default async function AnnonceDetailPage({ params }: Props) {
     texte: "#f1eada",
   };
   const demo = estModeDemo();
+  const currentUser = await getCurrentUser();
+  const estConnecte = !!currentUser;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -115,22 +119,18 @@ export default async function AnnonceDetailPage({ params }: Props) {
             <div className="mt-7 space-y-2.5">
               <button
                 className="relief w-full rounded-sm border-2 border-encre bg-garance px-6 py-3.5 font-texte text-sm font-bold tracking-wide text-platre uppercase transition-all hover:-translate-y-0.5 hover:bg-garance-fonce disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-                disabled={demo}
-                title={demo ? "Disponible après l'activation des comptes" : undefined}
+                disabled
+                title="Les commandes seront disponibles à la Phase 5."
               >
                 Commander
               </button>
-              <button
-                className="w-full rounded-sm border-2 border-encre bg-platre px-6 py-3.5 font-texte text-sm font-bold tracking-wide text-encre uppercase transition-all hover:-translate-y-0.5 hover:bg-platre-fonce hover:shadow-[4px_4px_0_0_rgb(40_34_27/0.35)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-                disabled={demo}
-                title={demo ? "Disponible après l'activation des comptes" : undefined}
-              >
-                Contacter le producteur
-              </button>
+              <BoutonContacter
+                listingId={annonce.id}
+                estConnecte={estConnecte}
+              />
               {demo && (
                 <p className="pt-1 text-center text-xs text-encre-doux">
-                  Mode démo : la commande et la messagerie seront activées avec
-                  les vrais comptes.
+                  Mode démo : la commande sera activée avec Stripe (Phase 5).
                 </p>
               )}
             </div>

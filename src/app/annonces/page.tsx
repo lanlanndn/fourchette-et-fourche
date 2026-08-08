@@ -6,7 +6,10 @@ import CarteAnnonce from "@/components/CarteAnnonce";
 import CarteAnnonces from "@/components/carte/CarteAnnonces";
 import FiltresAnnonces from "@/components/carte/FiltresAnnonces";
 
-export const metadata: Metadata = { title: "Annonces" };
+export const metadata: Metadata = {
+  title: "Annonces",
+  description: "Parcourez les annonces des producteurs locaux près de chez vous. Légumes, fruits, viandes, fromages, vins… directement de la ferme à votre restaurant.",
+};
 
 type Props = {
   searchParams: Promise<{
@@ -14,25 +17,36 @@ type Props = {
     departement?: string;
     region?: string;
     q?: string;
+    lat?: string;
+    lng?: string;
+    rayon?: string;
   }>;
 };
 
 export default async function AnnoncesPage({ searchParams }: Props) {
   const params = await searchParams;
+  const lat = params.lat ? parseFloat(params.lat) : undefined;
+  const lng = params.lng ? parseFloat(params.lng) : undefined;
+  const rayonKm = params.rayon ? parseInt(params.rayon, 10) : undefined;
   const filtres = {
     categorie: params.categorie,
     departement: params.departement,
     region: params.region,
     recherche: params.q,
+    lat,
+    lng,
+    rayonKm,
   };
   const annonces = await listerAnnonces(filtres);
 
   // Petit résumé de la zone sélectionnée
-  const zone = params.departement
-    ? nomDepartement(params.departement)
-    : params.region
-      ? nomRegion(params.region)
-      : "France entière";
+  const zone = lat && lng && rayonKm
+    ? `Rayon de ${rayonKm} km`
+    : params.departement
+      ? nomDepartement(params.departement)
+      : params.region
+        ? nomRegion(params.region)
+        : "France entière";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
@@ -47,14 +61,6 @@ export default async function AnnoncesPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <Suspense>
-        <FiltresAnnonces
-          categorie={params.categorie}
-          departement={params.departement}
-          recherche={params.q}
-        />
-      </Suspense>
-
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         {/* Carte interactive */}
         <div className="lg:sticky lg:top-20 lg:self-start">
@@ -67,8 +73,16 @@ export default async function AnnoncesPage({ searchParams }: Props) {
           </Suspense>
         </div>
 
-        {/* Liste des annonces */}
-        <div>
+        {/* Colonne droite : filtres + liste des annonces */}
+        <div className="space-y-6">
+          <Suspense>
+            <FiltresAnnonces
+              categorie={params.categorie}
+              departement={params.departement}
+              recherche={params.q}
+            />
+          </Suspense>
+
           {annonces.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center border-2 border-encre bg-platre-fonce/50 p-8 text-center">
               <p className="font-affiche text-3xl tracking-wide text-encre uppercase">

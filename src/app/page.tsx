@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { listerAnnonces } from "@/lib/donnees";
 import { CATEGORIES, COULEURS_CATEGORIES } from "@/lib/constantes";
@@ -11,6 +12,20 @@ import {
   IconeFourche,
   IconeFourchette,
 } from "@/components/icones";
+
+export const metadata: Metadata = {
+  title: "Fourchette & Fourche — Du producteur au restaurateur",
+  description:
+    "La marketplace qui met en relation les restaurateurs avec les producteurs locaux. Trouvez des produits frais près de chez vous, directement à la ferme, dans toute la France.",
+  keywords: ["producteurs locaux", "restaurateurs", "circuit court", "produits frais", "agriculture", "marketplace"],
+  openGraph: {
+    title: "Fourchette & Fourche — Du producteur au restaurateur",
+    description:
+      "La marketplace qui met en relation les restaurateurs avec les producteurs locaux. Produits frais, directement à la ferme.",
+    type: "website",
+    locale: "fr_FR",
+  },
+};
 
 // Une poignée de départements pour la frise du héros
 const FRISE_DEPTS = [

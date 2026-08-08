@@ -44,15 +44,18 @@ export default async function TableauDeBordPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         {estProducteur ? (
           <>
-            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6">
+            <Link
+              href="/tableau-de-bord/annonces"
+              className="relief-doux block border-2 border-encre bg-[#fbf7ec] p-6 transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_rgb(40_34_27/0.6)]"
+            >
               <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Mes annonces
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-encre-doux">
-                Publiez vos produits avec photos et prix. (Arrive à la
-                phase 2 !)
+                Publiez vos produits avec photos et prix. Apparaissez sur la
+                carte !
               </p>
-            </div>
+            </Link>
             <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6">
               <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Recevoir mes paiements

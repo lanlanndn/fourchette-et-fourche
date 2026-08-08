@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FormulaireConnexion from "@/components/forms/FormulaireConnexion";
 
-export const metadata: Metadata = { title: "Connexion" };
+export const metadata: Metadata = {
+  title: "Connexion",
+  description: "Connectez-vous à votre espace Fourchette & Fourche pour gérer vos annonces, votre messagerie et vos commandes.",
+};
 
 export default function ConnexionPage() {
   return (

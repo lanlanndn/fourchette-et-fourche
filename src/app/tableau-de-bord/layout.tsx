@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { deconnexionAction } from "@/lib/actions/auth";
+import { countUnreadMessages } from "@/lib/actions/messagerie";
 import { IconeFourche, IconeFourchette } from "@/components/icones";
 
 export default async function LayoutTableauDeBord({
@@ -13,6 +14,7 @@ export default async function LayoutTableauDeBord({
   if (!user) redirect("/connexion");
 
   const estProducteur = user.role === "PRODUCTEUR";
+  const nonLus = await countUnreadMessages();
 
   const liens = [
     { href: "/tableau-de-bord", label: "Accueil" },
@@ -44,9 +46,14 @@ export default async function LayoutTableauDeBord({
               <Link
                 key={lien.href}
                 href={lien.href}
-                className="whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-encre transition-colors hover:bg-platre-fonce hover:text-outremer"
+                className="flex items-center justify-between whitespace-nowrap rounded-sm px-3 py-2 text-sm font-medium text-encre transition-colors hover:bg-platre-fonce hover:text-outremer"
               >
                 {lien.label}
+                {lien.href === "/tableau-de-bord/messagerie" && nonLus > 0 && (
+                  <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-garance px-1.5 text-[11px] font-bold text-platre">
+                    {nonLus}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

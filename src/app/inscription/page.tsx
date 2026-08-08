@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FormulaireInscription from "@/components/forms/FormulaireInscription";
 
-export const metadata: Metadata = { title: "Inscription" };
+export const metadata: Metadata = {
+  title: "Inscription",
+  description: "Rejoignez Fourchette & Fourche. Producteur : publiez vos annonces et vendez aux restaurateurs de votre région. Restaurateur : trouvez des produits locaux en circuit court.",
+};
 
 export default function InscriptionPage() {
   return (
