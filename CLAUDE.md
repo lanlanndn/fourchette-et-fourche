@@ -46,7 +46,7 @@
 
 ---
 
-## 4. État d'avancement (au 7 août 2026)
+## 4. État d'avancement (au 10 août 2026)
 
 ### ✅ Terminé et vérifié (build OK, pages testées 200)
 - **Phase 0 — Fondations** : projet complet, page d'accueil, header/footer, pages légales (gabarits), git initialisé.
@@ -62,7 +62,7 @@
 ### ⏳ À faire (quand Landry sera prêt)
 - **Phase 5** : commandes + Stripe Connect (mode test, clés `sk_test`), onboarding producteur, webhook `/api/webhooks/stripe`. Prérequis : statut auto-entrepreneur + compte Stripe.
 - **Resend** : emails transactionnels (notifications de nouveaux messages, confirmation de commande). Prérequis : compte Resend (gratuit, 100 emails/jour).
-- **Mise en ligne** : dépôt GitHub, déploiement Vercel, domaine.
+- **Domaine personnalisé** : acheter `fourchette-et-fourche.fr` et le configurer sur Vercel (~10 €/an).
 
 ### Dépôts / comptes créés
 - **Supabase Cloud** : projet `tnwefomjxcbsallmcsvf` — base PostgreSQL, Auth, Storage (bucket `annonces`), RLS.
@@ -115,21 +115,37 @@
 
 ---
 
-## 6. Branchement Supabase (prochaine action avec Landry)
+## 6. Configuration Supabase (FAIT — ne pas refaire)
 
-Deux options (Landry choisira ; Docker est installé et fonctionne sur sa machine) :
-- **Local (Docker)** : `npx supabase start` → récupérer URL + clés via `npx supabase status` → DATABASE_URL = `postgresql://postgres:postgres@localhost:54322/postgres`.
-- **Cloud** : supabase.com → nouveau projet → Project Settings > API (URL, anon, service_role) et Database > Connection string URI.
+### Ce qui a été configuré
+- Projet Supabase Cloud : `tnwefomjxcbsallmcsvf`
+- `.env.local` contient les 4 valeurs (URL, anon key, service_role, DATABASE_URL pooler).
+- Migration Prisma exécutée (`prisma migrate dev --name init`).
+- Bucket Storage `annonces` créé avec RLS (lecture publique, écriture par dossier `{userId}`).
+- Auth : Site URL = `https://fourchette-et-fourche.vercel.app`, Redirect URLs incluent l'URL Vercel.
 
-Ensuite :
+### Si Supabase doit être reconfiguré (nouveau projet)
 1. Copier `.env.local.example` → `.env.local`, remplir les 4 valeurs Supabase + DATABASE_URL.
 2. `npx prisma migrate dev --name init` (crée les tables).
-3. Vérifier : inscription → connexion → profil avec adresse (géocodage automatique).
-4. Le bandeau démo disparaît automatiquement dès que `DATABASE_URL` existe.
+3. Créer le bucket Storage `annonces` (SQL Editor dans Supabase, voir SQL ci-dessous).
+4. Auth > URL Configuration : Site URL + Redirect URLs vers l'URL de déploiement.
+
+### SQL du bucket Storage (à rejouer si nouveau projet)
+```sql
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('annonces', 'annonces', true, 5242880, '{"image/jpeg","image/png","image/webp"}')
+on conflict (id) do nothing;
+-- Politiques RLS : lecture publique, upload limité au dossier {userId}
+create policy "annonces_lecture_publique" on storage.objects for select to public using (bucket_id = 'annonces');
+create policy "annonces_upload_producteur" on storage.objects for insert to authenticated
+with check (bucket_id = 'annonces' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "annonces_suppression_producteur" on storage.objects for delete to authenticated
+using (bucket_id = 'annonces' and (storage.foldername(name))[1] = auth.uid()::text);
+```
 
 `.env.local` n'est JAMAIS commité (déjà dans `.gitignore`).
 
-### Déploiement Vercel (configuré le 8 août 2026)
+### Déploiement Vercel (configuré le 10 août 2026)
 
 - **GitHub** : `lanlanndn/fourchette-et-fourche`, push automatique → déploiement Vercel.
 - **Variables d'environnement Vercel** (Settings > Environment Variables — les valeurs réelles sont dans `.env.local`) :
@@ -139,6 +155,7 @@ Ensuite :
   - `DATABASE_URL` : `postgresql://postgres.{PROJECT_REF}:{DB_PASSWORD}@aws-1-eu-west-1.pooler.supabase.com:5432/postgres?uselibpqcompat=true&sslmode=require`
 - ⚠️ **CRUCIAL** : Vercel utilise IPv6. La connexion directe Supabase ne supporte que l'IPv6, mais Vercel ne peut pas joindre le port PostgreSQL directement. **Il faut utiliser le pooler Session (port 5432)** avec `uselibpqcompat=true&sslmode=require`. Ne PAS utiliser la connexion directe (`db.xxx.supabase.co:5432`) ni le pooler Transaction (port 6543).
 - Dans Supabase, les URLs de redirection Auth doivent inclure l'URL Vercel (Auth > URL Configuration).
+- **Accès local depuis le réseau WiFi** : `npm run dev -- -H 0.0.0.0` puis `http://<IP_LOCALE>:3000` depuis un autre appareil.
 
 ---
 
