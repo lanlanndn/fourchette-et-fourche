@@ -40,7 +40,7 @@
 | Carte | Leaflet + react-leaflet 5 + OpenStreetMap | Gratuit, sans clé API |
 | Géocodage | api-adresse.data.gouv.fr + geo.api.gouv.fr | Gratuit, officiel |
 | Emails | Resend | Phase 4 — pas encore installé |
-| Hébergement (futur) | Vercel (site) + Supabase cloud (données) | ~0 €/mois |
+| Hébergement | **Vercel** (déployé) — domaine : `fourchette-et-fourche.vercel.app` | Gratuit |
 
 **Commandes** : `npm run dev` (dév), `npm run build` (doit toujours passer avant de livrer), `npx tsc --noEmit` (types), `npx prisma migrate dev` (migrations, nécessite `DATABASE_URL`).
 
@@ -66,7 +66,8 @@
 
 ### Dépôts / comptes créés
 - **Supabase Cloud** : projet `tnwefomjxcbsallmcsvf` — base PostgreSQL, Auth, Storage (bucket `annonces`), RLS.
-- **Git** : local sur `main`. **Pas encore de GitHub distant ni de Vercel**.
+- **GitHub** : https://github.com/lanlanndn/fourchette-et-fourche (`main`)
+- **Vercel** : déployé automatiquement depuis GitHub, URL publique `fourchette-et-fourche.vercel.app`
 - **Stripe / Resend** : pas encore créés.
 
 ---
@@ -128,6 +129,17 @@ Ensuite :
 
 `.env.local` n'est JAMAIS commité (déjà dans `.gitignore`).
 
+### Déploiement Vercel (configuré le 8 août 2026)
+
+- **GitHub** : `lanlanndn/fourchette-et-fourche`, push automatique → déploiement Vercel.
+- **Variables d'environnement Vercel** (Settings > Environment Variables — les valeurs réelles sont dans `.env.local`) :
+  - `NEXT_PUBLIC_SUPABASE_URL` : URL du projet Supabase
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` : clé publique Supabase
+  - `SUPABASE_SERVICE_ROLE_KEY` : clé secrète service_role
+  - `DATABASE_URL` : `postgresql://postgres.{PROJECT_REF}:{DB_PASSWORD}@aws-1-eu-west-1.pooler.supabase.com:5432/postgres?uselibpqcompat=true&sslmode=require`
+- ⚠️ **CRUCIAL** : Vercel utilise IPv6. La connexion directe Supabase ne supporte que l'IPv6, mais Vercel ne peut pas joindre le port PostgreSQL directement. **Il faut utiliser le pooler Session (port 5432)** avec `uselibpqcompat=true&sslmode=require`. Ne PAS utiliser la connexion directe (`db.xxx.supabase.co:5432`) ni le pooler Transaction (port 6543).
+- Dans Supabase, les URLs de redirection Auth doivent inclure l'URL Vercel (Auth > URL Configuration).
+
 ---
 
 ## 7. Pièges déjà rencontrés (ne pas re-chercher)
@@ -145,6 +157,7 @@ Ensuite :
 - **Supabase Storage upload** : le client browser (`createBrowserClient`) upload directement, les fichiers vont dans des dossiers par `userId`. La RLS vérifie que `(storage.foldername(name))[1] = auth.uid()::text`.
 - **Prisma n'a pas de `postalCode` sur `Listing`** (contrairement à `User`) — ne pas l'inclure dans les `create`/`update`.
 - **Prix** : le formulaire envoie `prixEuros` (string avec virgule française), l'action serveur convertit en `priceCents` (entier).
+- **Déploiement Vercel** : utiliser le **Session pooler** (port 5432) et non la connexion directe ni le Transaction pooler. Format : `postgresql://postgres.{PROJECT_REF}:{PASSWORD}@aws-1-eu-west-1.pooler.supabase.com:5432/postgres?uselibpqcompat=true&sslmode=require`. La connexion directe (`db.xxx.supabase.co:5432`) ne fonctionne pas depuis Vercel (timeout réseau). Le Transaction pooler (port 6543) provoque des erreurs PgBouncer « prepared statement already exists » avec Prisma.
 - **Tailwind v4** : les classes maison se définissent avec `@utility` dans `globals.css` (pas `@layer` seul si on veut les variantes `hover:`/`focus:`).
 
 ---
@@ -160,4 +173,4 @@ Ensuite :
 
 ---
 
-*Dernière mise à jour : 7 août 2026 — Phases 0-1-2-3-4-6 terminées. Supabase opérationnel, annonces avec photos, carte avec géolocalisation, messagerie, SEO.*
+*Dernière mise à jour : 10 août 2026 — Phases 0-1-2-3-4-6 terminées et **déployées sur Vercel**. Supabase + GitHub + Vercel opérationnels. URL : `fourchette-et-fourche.vercel.app`.*
