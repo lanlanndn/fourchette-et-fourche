@@ -13,6 +13,7 @@ import { getCurrentUser } from "@/lib/auth";
 import PlaqueDepartement from "@/components/PlaqueDepartement";
 import { IconeFourche } from "@/components/icones";
 import BoutonContacter from "@/components/BoutonContacter";
+import FormulaireCommande from "@/components/FormulaireCommande";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -117,22 +118,38 @@ export default async function AnnonceDetailPage({ params }: Props) {
             )}
 
             <div className="mt-7 space-y-2.5">
-              <button
-                className="relief w-full rounded-sm border-2 border-encre bg-garance px-6 py-3.5 font-texte text-sm font-bold tracking-wide text-platre uppercase transition-all hover:-translate-y-0.5 hover:bg-garance-fonce disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-                disabled
-                title="Les commandes seront disponibles à la Phase 5."
-              >
-                Commander
-              </button>
+              {demo ? (
+                <>
+                  <button
+                    className="relief w-full rounded-sm border-2 border-encre bg-garance px-6 py-3.5 font-texte text-sm font-bold tracking-wide text-platre uppercase transition-all hover:-translate-y-0.5 hover:bg-garance-fonce disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                    disabled
+                    title="Les commandes seront disponibles avec Stripe en production."
+                  >
+                    Commander
+                  </button>
+                  <p className="pt-1 text-center text-xs text-encre-doux">
+                    Mode démo : la commande sera activée avec Stripe.
+                  </p>
+                </>
+              ) : (
+                <FormulaireCommande
+                  listingId={annonce.id}
+                  prixCents={annonce.priceCents}
+                  unit={annonce.unit}
+                  quantiteDisponible={annonce.quantityAvailable}
+                  estConnecte={estConnecte}
+                  estMonAnnonce={
+                    estConnecte && currentUser?.id === annonce.producer.id
+                  }
+                  paiementsProducteurActifs={
+                    annonce.producer.stripeOnboardingComplete ?? false
+                  }
+                />
+              )}
               <BoutonContacter
                 listingId={annonce.id}
                 estConnecte={estConnecte}
               />
-              {demo && (
-                <p className="pt-1 text-center text-xs text-encre-doux">
-                  Mode démo : la commande sera activée avec Stripe (Phase 5).
-                </p>
-              )}
             </div>
           </div>
 

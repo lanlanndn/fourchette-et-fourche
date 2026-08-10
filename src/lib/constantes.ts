@@ -32,6 +32,15 @@ export const CATEGORIES: Record<string, { label: string; emoji: string }> = {
   AUTRE: { label: "Autre", emoji: "📦" },
 };
 
+// Statuts d'une commande (affichage)
+export const STATUTS_COMMANDE: Record<string, { label: string; classe: string }> = {
+  PENDING_PAYMENT: { label: "En attente de paiement", classe: "bg-ocre/30 text-encre" },
+  PAID: { label: "Payée", classe: "bg-verdigris text-platre" },
+  CANCELLED: { label: "Annulée", classe: "bg-platre-fonce text-encre-doux" },
+  REFUNDED: { label: "Remboursée", classe: "bg-outremer text-platre" },
+  DISPUTED: { label: "Litige", classe: "bg-garance text-platre" },
+};
+
 export const UNITES: Record<string, string> = {
   KG: "kg",
   GRAMMES: "g",

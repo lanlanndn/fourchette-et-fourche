@@ -330,8 +330,8 @@ const LISTES_ANNONCES: Listing[] = [
 export const ANNONCES_DEMO: AnnonceAvecProducteur[] = LISTES_ANNONCES.map(
   (a) => ({
     ...a,
-    producer: (({ id, displayName, city, departement, region, certifications, bio, avatarUrl }) => ({
-      id, displayName, city, departement, region, certifications, bio, avatarUrl,
+    producer: (({ id, displayName, city, departement, region, certifications, bio, avatarUrl, stripeAccountId, stripeOnboardingComplete }) => ({
+      id, displayName, city, departement, region, certifications, bio, avatarUrl, stripeAccountId, stripeOnboardingComplete,
     }))(PRODUCTEURS.find((p) => p.id === a.producerId)!),
   }),
 );

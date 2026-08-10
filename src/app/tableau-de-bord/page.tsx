@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
+import ActiverPaiements from "@/components/ActiverPaiements";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 
@@ -60,9 +61,12 @@ export default async function TableauDeBordPage() {
               <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Recevoir mes paiements
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-encre-doux">
-                Activez les paiements pour être payé directement. (Phase 5 !)
-              </p>
+              <div className="mt-2">
+                <ActiverPaiements
+                  stripeAccountId={user.stripeAccountId}
+                  stripeOnboardingComplete={user.stripeOnboardingComplete}
+                />
+              </div>
             </div>
           </>
         ) : (
@@ -78,14 +82,17 @@ export default async function TableauDeBordPage() {
                 Découvrez les producteurs de votre région sur la carte.
               </p>
             </Link>
-            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-6">
+            <Link
+              href="/tableau-de-bord/commandes"
+              className="relief-doux block border-2 border-encre bg-[#fbf7ec] p-6 transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_rgb(40_34_27/0.6)]"
+            >
               <h2 className="font-affiche text-xl tracking-wide uppercase">
                 Mes commandes
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-encre-doux">
-                Suivez vos commandes en cours. (Phase 5 !)
+                Suivez vos commandes en cours et votre historique d&apos;achats.
               </p>
-            </div>
+            </Link>
           </>
         )}
       </div>

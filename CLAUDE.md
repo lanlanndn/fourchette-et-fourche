@@ -54,21 +54,23 @@
 - **Phase 2 — Annonces** : création/édition d'annonces avec upload photos (Supabase Storage, drag & drop), liste des annonces dans le tableau de bord, activation/désactivation, bucket `annonces` avec RLS. Pages : `/tableau-de-bord/annonces`, `/tableau-de-bord/annonces/nouvelle`, `/tableau-de-bord/annonces/[id]/modifier`. Composants : `FormulaireAnnonce.tsx`, `UploadPhotos.tsx`.
 - **Phase 3 — Carte** : bouton « Autour de moi » avec géolocalisation navigateur + fallback saisie ville, cercle de recherche sur la carte, sélecteur de rayon (5-100 km), filtre haversine (`src/lib/haversine.ts`), filtres responsives (repliables sur mobile), marqueur de centre de recherche. Filtres placés dans la colonne de droite à côté de la carte sur desktop.
 - **Phase 4 — Messagerie** : conversations entre restaurateurs et producteurs, bouton « Contacter le producteur » sur les fiches annonces, badge de messages non lus dans le menu, pages `/tableau-de-bord/messagerie` et `/tableau-de-bord/messagerie/[id]`. Actions : `createOrGetConversationAction`, `sendMessageAction`, `markConversationAsRead`, `countUnreadMessages`.
+- **Phase 5 — Paiement** : Stripe Connect (Checkout Session + destination charges). Onboarding producteur (Express), checkout restaurateur (page hébergée Stripe), webhook `/api/webhooks/stripe` (PAID + décrément du stock + conversation automatique), pages `/tableau-de-bord/commandes` (liste + détail). Composants : `ActiverPaiements.tsx`, `FormulaireCommande.tsx`. Actions : `activerPaiementsAction`, `creerCommandeAction`. **Mode test Stripe — clés `sk_test` / `pk_test` configurées.**
 - **Header intelligent** : le header affiche « Tableau de bord » + « Déconnexion » quand l'utilisateur est connecté, « Connexion » + « Publier une annonce » quand il ne l'est pas.
-- **Mode démo (choix de Landry)** : 8 producteurs + 16 annonces d'exemple dans `src/lib/donnees/demo.ts`. Le mode démo s'active quand `DATABASE_URL` n'est pas configurée.
+- **Mode démo (choix de Landry)** : 8 producteurs + 16 annonces d'exemple dans `src/lib/donnees/demo.ts`. Le mode démo s'active quand `DATABASE_URL` n'est pas configurée. Le bouton Commander reste désactivé en mode démo.
 - **Redesign « Enseigne peinte » (6 août 2026, skill impeccable)** : monde visuel complet (voir `DESIGN.md`), contrat de direction dans `src/app/layout.tsx` (seed d5e83781).
 - **Phase 6 — Finitions** : SEO (métadonnées enrichies, sitemap.xml, robots.txt), page 404 personnalisée.
 
 ### ⏳ À faire (quand Landry sera prêt)
-- **Phase 5** : commandes + Stripe Connect (mode test, clés `sk_test`), onboarding producteur, webhook `/api/webhooks/stripe`. Prérequis : statut auto-entrepreneur + compte Stripe.
 - **Resend** : emails transactionnels (notifications de nouveaux messages, confirmation de commande). Prérequis : compte Resend (gratuit, 100 emails/jour).
 - **Domaine personnalisé** : acheter `fourchette-et-fourche.fr` et le configurer sur Vercel (~10 €/an).
+- **Passage en production Stripe** : activer le mode live (clés `sk_live` / `pk_live`) une fois le statut auto-entrepreneur obtenu.
 
 ### Dépôts / comptes créés
 - **Supabase Cloud** : projet `tnwefomjxcbsallmcsvf` — base PostgreSQL, Auth, Storage (bucket `annonces`), RLS.
 - **GitHub** : https://github.com/lanlanndn/fourchette-et-fourche (`main`)
 - **Vercel** : déployé automatiquement depuis GitHub, URL publique `fourchette-et-fourche.vercel.app`
-- **Stripe / Resend** : pas encore créés.
+- **Stripe** : mode test — clés `sk_test_...` / `pk_test_...` configurées dans `.env.local` et Vercel. Webhook : `/api/webhooks/stripe`
+- **Resend** : pas encore créé.
 
 ---
 
@@ -190,4 +192,4 @@ using (bucket_id = 'annonces' and (storage.foldername(name))[1] = auth.uid()::te
 
 ---
 
-*Dernière mise à jour : 10 août 2026 — Phases 0-1-2-3-4-6 terminées et **déployées sur Vercel**. Supabase + GitHub + Vercel opérationnels. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 10 août 2026 — Phases 0-1-2-3-4-**5**-6 terminées et **déployées sur Vercel**. Stripe Connect en mode test, Supabase + GitHub + Vercel opérationnels. URL : `fourchette-et-fourche.vercel.app`.*

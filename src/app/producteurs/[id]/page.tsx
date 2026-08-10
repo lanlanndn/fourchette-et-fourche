@@ -31,6 +31,8 @@ export default async function ProducteurPublicPage({ params }: Props) {
       certifications: prod.certifications,
       bio: prod.bio,
       avatarUrl: prod.avatarUrl,
+      stripeAccountId: prod.stripeAccountId,
+      stripeOnboardingComplete: prod.stripeOnboardingComplete,
     },
   }));
 

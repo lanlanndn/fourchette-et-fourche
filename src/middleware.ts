@@ -8,6 +8,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Tout sauf les fichiers statiques et les images
-    "/((?!_next/static|_next/image|favicon.ico|geojson|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|geojson|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

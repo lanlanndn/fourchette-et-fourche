@@ -12,6 +12,8 @@ export type AnnonceAvecProducteur = Listing & {
     | "certifications"
     | "bio"
     | "avatarUrl"
+    | "stripeAccountId"
+    | "stripeOnboardingComplete"
   >;
 };
 
