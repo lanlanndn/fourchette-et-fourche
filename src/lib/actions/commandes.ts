@@ -148,10 +148,14 @@ export async function creerCommandeAction(
     if (err instanceof Error && err.message === "NEXT_REDIRECT") {
       throw err;
     }
-    console.error("Erreur checkout Stripe :", err);
+
+    const messageStripe =
+      err instanceof Error ? err.message : "Erreur inconnue";
+
+    console.error("Erreur checkout Stripe :", messageStripe);
+
     return {
-      erreur:
-        "Impossible d'initier le paiement pour le moment. Réessaie dans quelques instants.",
+      erreur: `Erreur Stripe : ${messageStripe}`,
     };
   }
 }

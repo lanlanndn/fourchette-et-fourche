@@ -21,8 +21,11 @@ export async function activerPaiementsAction(): Promise<
       return { erreur: "Seuls les producteurs peuvent activer les paiements." };
     }
 
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return { erreur: "Les paiements en ligne ne sont pas encore configurés." };
+    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.length < 10) {
+      return {
+        erreur:
+          "Clé Stripe manquante ou invalide dans les variables d'environnement.",
+      };
     }
 
     const stripe = getStripe();
@@ -75,10 +78,17 @@ export async function activerPaiementsAction(): Promise<
     if (err instanceof Error && err.message === "NEXT_REDIRECT") {
       throw err;
     }
-    console.error("Erreur onboarding Stripe :", err);
+
+    // Extraire le message d'erreur Stripe s'il existe
+    const messageStripe =
+      err instanceof Error
+        ? err.message
+        : "Erreur inconnue";
+
+    console.error("Erreur onboarding Stripe :", messageStripe);
+
     return {
-      erreur:
-        "Impossible de contacter Stripe pour le moment. Réessaie dans quelques instants.",
+      erreur: `Erreur Stripe : ${messageStripe}`,
     };
   }
 }
