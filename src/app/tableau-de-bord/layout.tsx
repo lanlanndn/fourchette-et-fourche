@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { deconnexionAction } from "@/lib/actions/auth";
 import { countUnreadMessages } from "@/lib/actions/messagerie";
+import { countNouvellesCommandes } from "@/lib/actions/commandes";
 import { IconeFourche, IconeFourchette } from "@/components/icones";
 
 export default async function LayoutTableauDeBord({
@@ -15,6 +16,7 @@ export default async function LayoutTableauDeBord({
 
   const estProducteur = user.role === "PRODUCTEUR";
   const nonLus = await countUnreadMessages();
+  const commandesEnAttente = await countNouvellesCommandes();
 
   const liens = [
     { href: "/tableau-de-bord", label: "Accueil" },
@@ -54,6 +56,12 @@ export default async function LayoutTableauDeBord({
                     {nonLus}
                   </span>
                 )}
+                {lien.href === "/tableau-de-bord/commandes" &&
+                  commandesEnAttente > 0 && (
+                    <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-garance px-1.5 text-[11px] font-bold text-platre">
+                      {commandesEnAttente}
+                    </span>
+                  )}
               </Link>
             ))}
           </nav>

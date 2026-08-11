@@ -9,6 +9,25 @@ import { getStripe, calculerCommission } from "@/lib/stripe";
 import type { EtatFormulaire } from "@/lib/actions/auth";
 import type { OrderStatus } from "@prisma/client";
 
+// ---------- Compteur de commandes pour le badge ----------
+
+/** Compte les commandes PAID pour le producteur connecté. */
+export async function countNouvellesCommandes(): Promise<number> {
+  try {
+    const user = await requireUser();
+    if (user.role !== "PRODUCTEUR") return 0;
+
+    return prisma.order.count({
+      where: {
+        status: "PAID",
+        items: { some: { listing: { producerId: user.id } } },
+      },
+    });
+  } catch {
+    return 0;
+  }
+}
+
 // ---------- Validation ----------
 
 const schemaCommande = z.object({
