@@ -38,11 +38,14 @@ export async function activerPaiementsAction(): Promise<
     // Créer le compte Stripe Connect Express s'il n'existe pas encore
     if (!accountId) {
       const account = await stripe.accounts.create({
-        type: "express",
         country: "FR",
         email: user.email,
+        controller: {
+          fees: { payer: "application" },
+          losses: { payments: "application" },
+          stripe_dashboard: { type: "express" },
+        },
         capabilities: { transfers: { requested: true } },
-        business_type: "individual",
         business_profile: {
           name: user.displayName,
           url: origin,
