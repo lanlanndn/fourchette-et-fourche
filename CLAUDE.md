@@ -90,10 +90,12 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - **Conteneur avec hauteur fixe** (`h-[420px] lg:h-[560px]`) — jamais `h-full` vers un parent sans hauteur.
 
 ### Paiement
-- `src/lib/stripe.ts` : client singleton + `calculerCommission()`.
-- `src/lib/actions/paiement.ts` : onboarding producteur (Stripe Connect Express).
-- `src/lib/actions/commandes.ts` : création commande + Checkout Session.
+- `src/lib/stripe.ts` : client paresseux (`getStripe()`) + `calculerCommission()`.
+- `src/lib/actions/paiement.ts` : onboarding producteur (Stripe Connect Express, API `controller`).
+- `src/lib/actions/commandes.ts` : création commande + Checkout Session + compteur `countNouvellesCommandes()`.
+- `src/lib/commandes-utils.ts` : `traiterCommandePayee()` — partagé entre le webhook et la page commandes.
 - `src/app/api/webhooks/stripe/route.ts` : `checkout.session.completed` → PAID + stock −1 + conversation auto ; `account.updated` → onboarding confirmé.
+- Badge de notification sur l'onglet Commandes (pastille garance, comme la messagerie).
 
 ### Styles — monde « Enseigne peinte » (voir `DESIGN.md`)
 - Polices : Caprasimo (`font-affiche`) + Chivo (`font-texte`).
@@ -128,4 +130,4 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 
 ---
 
-*Dernière mise à jour : 10 août 2026 — Phases 0–6 terminées, Stripe Connect mode test. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 11 août 2026 — Phases 0–6 terminées et testées. Paiement Stripe Connect fonctionnel de bout en bout (onboarding → checkout → commande payée → notification). URL : `fourchette-et-fourche.vercel.app`.*
