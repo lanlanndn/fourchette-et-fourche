@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { stripe, calculerCommission } from "@/lib/stripe";
+import { getStripe, calculerCommission } from "@/lib/stripe";
 import type { EtatFormulaire } from "@/lib/actions/auth";
 import type { OrderStatus } from "@prisma/client";
 
@@ -25,120 +25,133 @@ export async function creerCommandeAction(
   _prev: EtatFormulaire,
   formData: FormData,
 ): Promise<EtatFormulaire> {
-  const user = await requireUser();
-  if (user.role !== "RESTAURATEUR") {
-    return { erreur: "Seuls les restaurateurs peuvent passer commande." };
-  }
+  try {
+    const user = await requireUser();
+    if (user.role !== "RESTAURATEUR") {
+      return { erreur: "Seuls les restaurateurs peuvent passer commande." };
+    }
 
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return { erreur: "Le paiement en ligne n'est pas encore disponible." };
-  }
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return { erreur: "Le paiement en ligne n'est pas encore disponible." };
+    }
 
-  // Validation
-  const brut = {
-    listingId: formData.get("listingId"),
-    quantite: formData.get("quantite"),
-  };
+    const stripe = getStripe();
 
-  const validation = schemaCommande.safeParse(brut);
-  if (!validation.success) {
-    return { erreur: validation.error.issues[0].message };
-  }
-  const { listingId, quantite } = validation.data;
-
-  // Charger l'annonce avec le producteur
-  const listing = await prisma.listing.findUnique({
-    where: { id: listingId },
-    include: { producer: true },
-  });
-
-  if (!listing || !listing.isActive) {
-    return { erreur: "Cette annonce n'est plus disponible." };
-  }
-
-  if (listing.producerId === user.id) {
-    return { erreur: "Vous ne pouvez pas commander votre propre annonce." };
-  }
-
-  if (
-    !listing.producer.stripeOnboardingComplete ||
-    !listing.producer.stripeAccountId
-  ) {
-    return {
-      erreur:
-        "Ce producteur n'a pas encore activé ses paiements en ligne. Vous pouvez le contacter via la messagerie.",
+    // Validation
+    const brut = {
+      listingId: formData.get("listingId"),
+      quantite: formData.get("quantite"),
     };
-  }
 
-  if (quantite > listing.quantityAvailable) {
-    return {
-      erreur: `Stock insuffisant. ${listing.quantityAvailable} disponible${listing.quantityAvailable > 1 ? "s" : ""}.`,
-    };
-  }
+    const validation = schemaCommande.safeParse(brut);
+    if (!validation.success) {
+      return { erreur: validation.error.issues[0].message };
+    }
+    const { listingId, quantite } = validation.data;
 
-  // Calculer les montants
-  const totalCents = listing.priceCents * quantite;
-  const commissionCents = calculerCommission(totalCents);
+    // Charger l'annonce avec le producteur
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId },
+      include: { producer: true },
+    });
 
-  // Créer la commande en base
-  const order = await prisma.order.create({
-    data: {
-      buyerId: user.id,
-      status: "PENDING_PAYMENT" as OrderStatus,
-      totalCents,
-      commissionCents,
-      items: {
-        create: [
-          {
-            listingId,
-            quantity: quantite,
-            unitPriceCents: listing.priceCents,
-            subtotalCents: totalCents,
-          },
-        ],
-      },
-    },
-  });
+    if (!listing || !listing.isActive) {
+      return { erreur: "Cette annonce n'est plus disponible." };
+    }
 
-  // Origine pour les URLs de retour
-  const head = await headers();
-  const origin =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    head.get("origin") ??
-    "http://localhost:3000";
+    if (listing.producerId === user.id) {
+      return { erreur: "Vous ne pouvez pas commander votre propre annonce." };
+    }
 
-  // Créer la session Checkout Stripe (destination charge)
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: totalCents,
-          product_data: {
-            name: `${listing.title} — ${quantite} ${listing.unit.toLowerCase()}`,
-            description: `Commande auprès de ${listing.producer.displayName}`,
-          },
+    if (
+      !listing.producer.stripeOnboardingComplete ||
+      !listing.producer.stripeAccountId
+    ) {
+      return {
+        erreur:
+          "Ce producteur n'a pas encore activé ses paiements en ligne. Vous pouvez le contacter via la messagerie.",
+      };
+    }
+
+    if (quantite > listing.quantityAvailable) {
+      return {
+        erreur: `Stock insuffisant. ${listing.quantityAvailable} disponible${listing.quantityAvailable > 1 ? "s" : ""}.`,
+      };
+    }
+
+    // Calculer les montants
+    const totalCents = listing.priceCents * quantite;
+    const commissionCents = calculerCommission(totalCents);
+
+    // Créer la commande en base
+    const order = await prisma.order.create({
+      data: {
+        buyerId: user.id,
+        status: "PENDING_PAYMENT" as OrderStatus,
+        totalCents,
+        commissionCents,
+        items: {
+          create: [
+            {
+              listingId,
+              quantity: quantite,
+              unitPriceCents: listing.priceCents,
+              subtotalCents: totalCents,
+            },
+          ],
         },
       },
-    ],
-    payment_intent_data: {
-      application_fee_amount: commissionCents,
-      transfer_data: {
-        destination: listing.producer.stripeAccountId!,
+    });
+
+    // Origine pour les URLs de retour
+    const head = await headers();
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ??
+      head.get("origin") ??
+      "http://localhost:3000";
+
+    // Créer la session Checkout Stripe (destination charge)
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: totalCents,
+            product_data: {
+              name: `${listing.title} — ${quantite} ${listing.unit.toLowerCase()}`,
+              description: `Commande auprès de ${listing.producer.displayName}`,
+            },
+          },
+        },
+      ],
+      payment_intent_data: {
+        application_fee_amount: commissionCents,
+        transfer_data: {
+          destination: listing.producer.stripeAccountId!,
+        },
       },
-    },
-    metadata: {
-      orderId: order.id,
-    },
-    success_url: `${origin}/tableau-de-bord/commandes?paiement=succes`,
-    cancel_url: `${origin}/tableau-de-bord/commandes?paiement=annule`,
-  });
+      metadata: {
+        orderId: order.id,
+      },
+      success_url: `${origin}/tableau-de-bord/commandes?paiement=succes`,
+      cancel_url: `${origin}/tableau-de-bord/commandes?paiement=annule`,
+    });
 
-  if (!session.url) {
-    return { erreur: "Impossible de créer la session de paiement." };
+    if (!session.url) {
+      return { erreur: "Impossible de créer la session de paiement." };
+    }
+
+    redirect(session.url);
+  } catch (err) {
+    if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+      throw err;
+    }
+    console.error("Erreur checkout Stripe :", err);
+    return {
+      erreur:
+        "Impossible d'initier le paiement pour le moment. Réessaie dans quelques instants.",
+    };
   }
-
-  redirect(session.url);
 }

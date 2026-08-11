@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { formaterPrix } from "@/lib/constantes";
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   // Vérifier la signature Stripe
   let evenement: Stripe.Event;
   try {
-    evenement = await stripe.webhooks.constructEventAsync(
+    evenement = await getStripe().webhooks.constructEventAsync(
       corps,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!,
