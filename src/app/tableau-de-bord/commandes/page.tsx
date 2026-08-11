@@ -2,16 +2,38 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getStripe } from "@/lib/stripe";
+import { traiterCommandePayee } from "@/lib/commandes-utils";
 import { STATUTS_COMMANDE, formaterPrix } from "@/lib/constantes";
 
 export const metadata: Metadata = { title: "Commandes" };
 
-type Props = { searchParams: Promise<{ paiement?: string }> };
+type Props = { searchParams: Promise<{ paiement?: string; session_id?: string }> };
 
 export default async function CommandesPage({ searchParams }: Props) {
   const user = await requireUser();
-  const { paiement } = await searchParams;
+  const { paiement, session_id } = await searchParams;
   const estProducteur = user.role === "PRODUCTEUR";
+
+  // Si on revient d'un paiement Stripe réussi, vérifier et traiter la commande
+  let paiementTraite: "succes" | "erreur" | null = null;
+  if (paiement === "succes" && session_id) {
+    try {
+      const stripe = getStripe();
+      const session = await stripe.checkout.sessions.retrieve(session_id);
+
+      if (session.payment_status === "paid" && session.metadata?.orderId) {
+        const orderId = session.metadata.orderId;
+
+        // Traiter la commande (idempotent : ne fait rien si déjà PAID)
+        await traiterCommandePayee(orderId, session.id);
+        paiementTraite = "succes";
+      }
+    } catch (err) {
+      console.error("Erreur traitement retour paiement :", err);
+      paiementTraite = "erreur";
+    }
+  }
 
   const commandes = await prisma.order.findMany({
     where: estProducteur
@@ -37,9 +59,10 @@ export default async function CommandesPage({ searchParams }: Props) {
           : "Retrouvez l'historique de vos achats."}
       </p>
 
-      {paiement === "succes" && (
+      {paiementTraite === "succes" && (
         <div className="mt-4 rounded-sm border-2 border-verdigris bg-verdigris/10 px-4 py-3 text-sm font-medium text-verdigris">
-          Paiement réussi ! Le producteur a été notifié.
+          Paiement réussi ! La commande est confirmée. Le producteur a été
+          notifié.
         </div>
       )}
 

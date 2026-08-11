@@ -135,7 +135,7 @@ export async function creerCommandeAction(
       metadata: {
         orderId: order.id,
       },
-      success_url: `${origin}/tableau-de-bord/commandes?paiement=succes`,
+      success_url: `${origin}/tableau-de-bord/commandes?paiement=succes&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/tableau-de-bord/commandes?paiement=annule`,
     });
 
