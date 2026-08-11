@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { formaterPrix } from "@/lib/constantes";
+import { notifierCommandePayee } from "@/lib/emails/notifications";
 
 /**
  * Traite une commande après paiement réussi.
@@ -12,9 +13,20 @@ export async function traiterCommandePayee(
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
+      buyer: { select: { id: true, email: true, displayName: true } },
       items: {
         include: {
-          listing: { select: { id: true, title: true, producerId: true } },
+          listing: {
+            select: {
+              id: true,
+              title: true,
+              unit: true,
+              producerId: true,
+              producer: {
+                select: { id: true, email: true, displayName: true },
+              },
+            },
+          },
         },
       },
     },
@@ -22,14 +34,22 @@ export async function traiterCommandePayee(
 
   if (!order || order.status === "PAID") return; // Idempotence
 
+  let traitee = false;
+
   await prisma.$transaction(async (tx) => {
-    await tx.order.update({
-      where: { id: orderId },
+    // updateMany au lieu de update : protège contre la race condition
+    // si le webhook et la page de retour arrivent en même temps
+    const res = await tx.order.updateMany({
+      where: { id: orderId, status: "PENDING_PAYMENT" },
       data: {
         status: "PAID",
         stripePaymentIntentId: paymentIntentId,
       },
     });
+
+    if (res.count === 0) return; // Un autre traitement est passé avant
+
+    traitee = true;
 
     for (const item of order.items) {
       await tx.listing.update({
@@ -69,4 +89,9 @@ export async function traiterCommandePayee(
       }
     }
   });
+
+  // Envoyer les emails APRES la transaction (dans after(), non bloquant)
+  if (traitee) {
+    notifierCommandePayee(orderId);
+  }
 }

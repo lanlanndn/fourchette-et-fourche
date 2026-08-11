@@ -37,6 +37,7 @@ model User {
   lng           Float?
 
   isVerified    Boolean  @default(false)
+  emailNotifications Boolean @default(true)
 
   // Stripe Connect (producteurs)
   stripeAccountId            String? @unique

@@ -17,6 +17,7 @@ const schemaProfil = z.object({
     .optional(),
   adresse: z.string().optional(),
   certifications: z.array(z.string()).optional(),
+  emailNotifications: z.boolean().optional(),
 });
 
 export async function updateProfilAction(
@@ -32,13 +33,14 @@ export async function updateProfilAction(
     siret: formData.get("siret") || undefined,
     adresse: formData.get("adresse") || undefined,
     certifications: formData.getAll("certifications").map(String),
+    emailNotifications: formData.get("emailNotifications") === "on",
   };
 
   const validation = schemaProfil.safeParse(brut);
   if (!validation.success) {
     return { erreur: validation.error.issues[0].message };
   }
-  const { displayName, phone, bio, siret, adresse, certifications } =
+  const { displayName, phone, bio, siret, adresse, certifications, emailNotifications } =
     validation.data;
 
   // Géocodage de l'adresse si elle est renseignée
@@ -61,6 +63,7 @@ export async function updateProfilAction(
       bio: bio ?? null,
       siret: siret || null,
       certifications: certifications ?? [],
+      emailNotifications: emailNotifications ?? true,
       ...(geo && {
         address: geo.adresse,
         city: geo.ville,

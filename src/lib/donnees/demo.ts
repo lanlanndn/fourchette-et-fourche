@@ -20,6 +20,7 @@ function producteur(
     siret: null,
     address: null,
     isVerified: true,
+    emailNotifications: true,
     stripeAccountId: null,
     stripeOnboardingComplete: false,
     createdAt: MAINTENANT,

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx prisma generate && npx prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
@@ -21,6 +21,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
+    "resend": "^6.19.0",
     "stripe": "^22.4.0",
     "zod": "^3.24.0"
   },

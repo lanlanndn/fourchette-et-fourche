@@ -4,6 +4,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { traiterCommandePayee } from "@/lib/commandes-utils";
+import { notifierPaiementExpire, notifierOnboardingTermine } from "@/lib/emails/notifications";
 
 /**
  * Webhook Stripe — point d'entrée unique pour tous les événements Stripe.
@@ -87,18 +88,29 @@ async function gererSessionExpiree(session: Stripe.Checkout.Session) {
   const orderId = session.metadata?.orderId;
   if (!orderId) return;
 
-  await prisma.order.updateMany({
+  const res = await prisma.order.updateMany({
     where: { id: orderId, status: "PENDING_PAYMENT" },
     data: { status: "CANCELLED" },
   });
+
+  // Notifier l'acheteur uniquement si la commande a bien été annulée
+  if (res.count > 0) {
+    notifierPaiementExpire(orderId);
+  }
 }
 
 async function gererCompteMisAJour(account: Stripe.Account) {
   // Vérifier que l'onboarding est bien terminé
   if (account.charges_enabled && account.details_submitted) {
-    await prisma.user.updateMany({
-      where: { stripeAccountId: account.id },
+    // updateMany conditionnel : n'écrit que si le champ n'était pas déjà true
+    // Évite de notifier à chaque account.updated ultérieur
+    const res = await prisma.user.updateMany({
+      where: { stripeAccountId: account.id, stripeOnboardingComplete: false },
       data: { stripeOnboardingComplete: true },
     });
+
+    if (res.count > 0) {
+      notifierOnboardingTermine(account.id);
+    }
   }
 }

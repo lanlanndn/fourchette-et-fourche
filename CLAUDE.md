@@ -36,7 +36,7 @@
 | Paiement | **Stripe Connect** — Checkout Sessions + destination charges (mode test, clés `sk_test`/`pk_test`) |
 | Carte | Leaflet + react-leaflet 5 + OpenStreetMap |
 | Géocodage | api-adresse.data.gouv.fr + geo.api.gouv.fr |
-| Emails | Resend (pas encore configuré) |
+| Emails | **Resend** — `src/lib/emails/` (envoi, gabarit, templates, notifications) |
 | Hébergement | **Vercel** — `fourchette-et-fourche.vercel.app`, déploiement auto depuis GitHub |
 
 **Commandes** : `npm run dev` / `npm run build` (jamais les deux en même temps !) / `npx tsc --noEmit`
@@ -59,7 +59,7 @@
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 
-**Prochaines étapes** (quand Landry sera prêt) : Resend (emails), domaine `fourchette-et-fourche.fr`, passage Stripe en mode live.
+**Prochaines étapes** (quand Landry sera prêt) : domaine `fourchette-et-fourche.fr`, passage Stripe en mode live.
 
 ### Comptes
 - **Supabase** : projet `tnwefomjxcbsallmcsvf` — PostgreSQL, Auth, Storage (bucket `annonces`, RLS)
@@ -97,6 +97,14 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - `src/app/api/webhooks/stripe/route.ts` : `checkout.session.completed` → PAID + stock −1 + conversation auto ; `account.updated` → onboarding confirmé.
 - Badge de notification sur l'onglet Commandes (pastille garance, comme la messagerie).
 
+### Emails (`src/lib/emails/`)
+- `envoi.ts` : client Resend paresseux, détection clé absente/placeholder → skip silencieux.
+- `gabarit.ts` : palette, layout HTML 600 px (table inline), `echapperHtml()`, `urlApp()`.
+- `templates.ts` : 5 contenus (confirmation acheteur, nouvelle commande, nouveau message, paiement expiré, onboarding terminé).
+- `notifications.ts` : 4 notifiers publics, chacun planifie l'envoi dans `after()` de `next/server` (non bloquant).
+- **Règle** : emails de commande = toujours ; emails informatifs = respectent `User.emailNotifications`.
+- **Piège** : `RESEND_API_KEY` placeholder `re_a-coller-plus-tard` → emails silencieusement désactivés. Clé réelle = `re_` + longueur.
+
 ### Styles — monde « Enseigne peinte » (voir `DESIGN.md`)
 - Polices : Caprasimo (`font-affiche`) + Chivo (`font-texte`).
 - Utilitaires : `relief`/`relief-doux`, `cadre`, `filet`, `etiquette`, `champ`, `prix-peint`, `grain`, `coins`.
@@ -130,4 +138,4 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 
 ---
 
-*Dernière mise à jour : 11 août 2026 — Phases 0–6 terminées et testées. Paiement Stripe Connect fonctionnel de bout en bout (onboarding → checkout → commande payée → notification). URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 11 août 2026 — Phases 0–6 terminées et testées. Emails Resend intégrés (5 templates, after() non bloquant). URL : `fourchette-et-fourche.vercel.app`.*

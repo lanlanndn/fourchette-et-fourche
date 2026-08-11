@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { notifierNouveauMessage } from "@/lib/emails/notifications";
 
 // ---------- Créer ou retrouver une conversation ----------
 
@@ -70,6 +71,10 @@ export async function createOrGetConversationAction(formData: FormData) {
   }
 
   revalidatePath("/tableau-de-bord/messagerie");
+
+  // Notifier le destinataire (non bloquant, dans after())
+  notifierNouveauMessage({ conversationId: conversationId!, senderId: user.id });
+
   redirect(`/tableau-de-bord/messagerie/${conversationId}`);
 }
 
@@ -109,6 +114,9 @@ export async function sendMessageAction(
       content: validation.data.content.trim(),
     },
   });
+
+  // Notifier le destinataire (non bloquant, dans after())
+  notifierNouveauMessage({ conversationId, senderId: user.id });
 
   revalidatePath(`/tableau-de-bord/messagerie/${conversationId}`);
   revalidatePath("/tableau-de-bord/messagerie");
