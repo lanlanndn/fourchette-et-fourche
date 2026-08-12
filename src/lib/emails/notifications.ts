@@ -1,4 +1,3 @@
-import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail } from "./envoi";
 import {
@@ -12,28 +11,13 @@ import {
 // ---------- Planificateur ----------
 
 /**
- * Planifie une tâche asynchrone après la réponse HTTP.
- * Utilise `after()` de Next.js (stable 15.1+), avec fallback direct
- * hors contexte requête (build, tests).
+ * Exécute une tâche d'envoi d'email en arrière-plan (fire-and-forget).
+ * N'utilise pas after() car Vercel serverless ne le supporte pas toujours.
  */
 function planifier(tache: () => Promise<void>): void {
-  const avecLogs = async () => {
-    try {
-      await tache();
-    } catch (err) {
-      console.error("[emails] erreur dans la tâche planifiée:", err);
-    }
-  };
-
-  try {
-    after(() => {
-      void avecLogs();
-    });
-  } catch {
-    // Fallback : hors contexte requête (build, test) → exécution directe
-    console.warn("[emails] after() indisponible — envoi direct");
-    void avecLogs();
-  }
+  void tache().catch((err) => {
+    console.error("[emails] erreur:", err);
+  });
 }
 
 // ---------- Notifiers publics ----------
