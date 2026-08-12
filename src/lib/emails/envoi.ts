@@ -19,20 +19,20 @@ export function emailsActives(): boolean {
 
 /** Adresse d'expédition configurée. */
 export function expediteur(): string {
-  return process.env.EMAIL_FROM ?? "Fourchette & Fourche <noreply@fourchette-fourche.fr>";
+  return process.env.EMAIL_FROM ?? "Fourchette & Fourche <onboarding@resend.dev>";
 }
 
-/** Envoie un email. Ne lève jamais d'exception — loggue et retourne false en cas d'échec. */
+/** Envoie un email. Retourne { ok: true } ou { ok: false, erreur } — ne lève jamais. */
 export async function envoyerEmail(params: {
   to: string;
   subject: string;
   html: string;
   text: string;
-}): Promise<boolean> {
+}): Promise<{ ok: boolean; erreur?: string }> {
   const resend = getResend();
   if (!resend) {
     console.log("[emails] désactivés — clé Resend absente ou placeholder.");
-    return false;
+    return { ok: false, erreur: "Clé Resend absente ou invalide" };
   }
 
   try {
@@ -46,16 +46,14 @@ export async function envoyerEmail(params: {
 
     if (error) {
       console.error(`[emails] erreur Resend pour ${params.to}:`, error.message);
-      return false;
+      return { ok: false, erreur: error.message };
     }
 
     console.log(`[emails] envoyé à ${params.to} — "${params.subject}"`);
-    return true;
+    return { ok: true };
   } catch (err) {
-    console.error(
-      `[emails] échec envoi à ${params.to}:`,
-      err instanceof Error ? err.message : err,
-    );
-    return false;
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[emails] échec envoi à ${params.to}:`, msg);
+    return { ok: false, erreur: msg };
   }
 }

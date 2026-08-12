@@ -4,22 +4,24 @@ import { emailConfirmationAcheteur } from "@/lib/emails/templates";
 
 /**
  * Route de test pour vérifier que Resend est bien configuré.
- * GET /api/test-email — envoie un email de test et retourne le résultat.
+ * GET /api/test-email — envoie un email de test et retourne le diagnostic.
  */
 export async function GET() {
   const active = emailsActives();
   const from = expediteur();
+  const cle = process.env.RESEND_API_KEY ? "présente" : "absente";
 
   if (!active) {
     return NextResponse.json({
       ok: false,
       raison: "RESEND_API_KEY absente ou invalide",
+      cle,
       expediteur: from,
     });
   }
 
-  const envoye = await envoyerEmail({
-    to: process.env.RESEND_TEST_TO ?? from.replace(/.*<(.*)>/, "$1"),
+  const resultat = await envoyerEmail({
+    to: from.replace(/.*<(.*)>/, "$1"),
     ...emailConfirmationAcheteur({
       displayName: "Testeur",
       titreProduit: "Produit de test",
@@ -32,10 +34,9 @@ export async function GET() {
   });
 
   return NextResponse.json({
-    ok: envoye,
+    ok: resultat.ok,
+    erreur: resultat.erreur ?? null,
+    cle,
     expediteur: from,
-    message: envoye
-      ? "Email envoyé — vérifie le dashboard Resend"
-      : "Échec de l'envoi — voir les logs Vercel",
   });
 }
