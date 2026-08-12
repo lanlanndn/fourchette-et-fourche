@@ -43,7 +43,7 @@
 
 ---
 
-## 4. État d'avancement (10 août 2026)
+## 4. État d'avancement (12 août 2026)
 
 **Toutes les phases sont terminées et déployées** ✅
 
@@ -56,16 +56,18 @@
 | 4 — Messagerie | Conversations par annonce, badge messages non lus |
 | 5 — Paiement | **Stripe Connect mode test** : onboarding producteur (Express), checkout (Checkout Session + destination charges), webhook `/api/webhooks/stripe`, pages commandes. Commission 10 %. |
 | 6 — Finitions | SEO, page 404, mode démo (8 producteurs + 16 annonces factices) |
+| 7 — Emails | **Resend** : 5 templates (confirmation commande, nouvelle commande, nouveau message, paiement expiré, onboarding). Envoi synchrone (pas de fire-and-forget — Vercel coupe les tâches d'arrière-plan). Préférence `emailNotifications`. Route de diagnostic `/api/test-email`. |
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 
-**Prochaines étapes** (quand Landry sera prêt) : domaine `fourchette-et-fourche.fr`, passage Stripe en mode live.
+**Prochaines étapes** (quand Landry sera prêt) : acheter `fourchette-et-fourche.fr` (~10 €/an), vérifier le domaine dans Resend, passer Stripe en mode live.
 
 ### Comptes
 - **Supabase** : projet `tnwefomjxcbsallmcsvf` — PostgreSQL, Auth, Storage (bucket `annonces`, RLS)
 - **GitHub** : `lanlanndn/fourchette-et-fourche` (branche `main`)
-- **Vercel** : déploiement auto depuis GitHub
+- **Vercel** : déploiement auto depuis GitHub — variables : `DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM`, clés Stripe, etc.
 - **Stripe** : mode test — webhook `/api/webhooks/stripe`
+- **Resend** : mode test (`onboarding@resend.dev`) — emails envoyés uniquement vers l'adresse du compte Resend tant que le domaine n'est pas vérifié
 
 ---
 
@@ -124,6 +126,7 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - **Vercel + Supabase** : utiliser le **Session pooler** (port 5432) avec `uselibpqcompat=true&sslmode=require`. Pas le pooler Transaction (port 6543) ni la connexion directe.
 - **Navigateur sous VPN** : `xdg-open` inutile pour localhost → utiliser `chromium` directement.
 - **Commits** : `git -c user.name="Landry" -c user.email="landry@fourchette-fourche.local"` (pas de config git globale).
+- **Emails sur Vercel** : ne pas utiliser `after()` ou fire-and-forget pour l'envoi d'emails — Vercel serverless coupe les Promise non attendues. Toujours `await` l'envoi dans le flux principal (coût ~200 ms).
 
 ---
 
@@ -138,4 +141,4 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 
 ---
 
-*Dernière mise à jour : 11 août 2026 — Phases 0–6 terminées et testées. Emails Resend intégrés (5 templates, after() non bloquant). URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 12 août 2026 — Phases 0–7 terminées. Emails Resend fonctionnels (5 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
