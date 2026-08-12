@@ -73,7 +73,7 @@ export async function createOrGetConversationAction(formData: FormData) {
   revalidatePath("/tableau-de-bord/messagerie");
 
   // Notifier le destinataire (non bloquant, dans after())
-  notifierNouveauMessage({ conversationId: conversationId!, senderId: user.id });
+  await notifierNouveauMessage({ conversationId: conversationId!, senderId: user.id });
 
   redirect(`/tableau-de-bord/messagerie/${conversationId}`);
 }
@@ -116,7 +116,7 @@ export async function sendMessageAction(
   });
 
   // Notifier le destinataire (non bloquant, dans after())
-  notifierNouveauMessage({ conversationId, senderId: user.id });
+  await notifierNouveauMessage({ conversationId, senderId: user.id });
 
   revalidatePath(`/tableau-de-bord/messagerie/${conversationId}`);
   revalidatePath("/tableau-de-bord/messagerie");

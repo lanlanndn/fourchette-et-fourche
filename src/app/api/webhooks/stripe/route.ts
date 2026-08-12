@@ -95,7 +95,7 @@ async function gererSessionExpiree(session: Stripe.Checkout.Session) {
 
   // Notifier l'acheteur uniquement si la commande a bien été annulée
   if (res.count > 0) {
-    notifierPaiementExpire(orderId);
+    await notifierPaiementExpire(orderId);
   }
 }
 
@@ -110,7 +110,7 @@ async function gererCompteMisAJour(account: Stripe.Account) {
     });
 
     if (res.count > 0) {
-      notifierOnboardingTermine(account.id);
+      await notifierOnboardingTermine(account.id);
     }
   }
 }

@@ -8,23 +8,11 @@ import {
   emailOnboardingTermine,
 } from "./templates";
 
-// ---------- Planificateur ----------
-
-/**
- * Exécute une tâche d'envoi d'email en arrière-plan (fire-and-forget).
- * N'utilise pas after() car Vercel serverless ne le supporte pas toujours.
- */
-function planifier(tache: () => Promise<void>): void {
-  void tache().catch((err) => {
-    console.error("[emails] erreur:", err);
-  });
-}
-
-// ---------- Notifiers publics ----------
+// ---------- Notifiers publics (tous async, appelés avec await) ----------
 
 /** Envoie les emails de confirmation (acheteur + producteur). */
-export function notifierCommandePayee(orderId: string): void {
-  planifier(async () => {
+export async function notifierCommandePayee(orderId: string): Promise<void> {
+  try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -51,7 +39,6 @@ export function notifierCommandePayee(orderId: string): void {
     for (const item of order.items) {
       const { listing } = item;
 
-      // Email à l'acheteur
       if (order.buyer.email) {
         await envoyerEmail({
           to: order.buyer.email,
@@ -67,7 +54,6 @@ export function notifierCommandePayee(orderId: string): void {
         });
       }
 
-      // Email au producteur (transactionnel → toujours, ignore la préférence)
       if (listing.producer.email) {
         await envoyerEmail({
           to: listing.producer.email,
@@ -84,16 +70,17 @@ export function notifierCommandePayee(orderId: string): void {
         });
       }
     }
-  });
+  } catch (err) {
+    console.error("[emails] erreur notifierCommandePayee:", err);
+  }
 }
 
 /** Envoie un email au destinataire d'un nouveau message. */
-export function notifierNouveauMessage(params: {
+export async function notifierNouveauMessage(params: {
   conversationId: string;
   senderId: string;
-}): void {
-  planifier(async () => {
-    // Recharger la conversation pour avoir les participants
+}): Promise<void> {
+  try {
     const conversation = await prisma.conversation.findUnique({
       where: { id: params.conversationId },
       include: {
@@ -122,7 +109,6 @@ export function notifierNouveauMessage(params: {
       (p) => p.userId === params.senderId,
     );
 
-    // Notifier chaque participant sauf l'expéditeur
     for (const participant of conversation.participants) {
       if (participant.userId === params.senderId) continue;
       if (participant.user.emailNotifications === false) continue;
@@ -139,12 +125,14 @@ export function notifierNouveauMessage(params: {
         }),
       });
     }
-  });
+  } catch (err) {
+    console.error("[emails] erreur notifierNouveauMessage:", err);
+  }
 }
 
 /** Envoie un email à l'acheteur quand son paiement expire. */
-export function notifierPaiementExpire(orderId: string): void {
-  planifier(async () => {
+export async function notifierPaiementExpire(orderId: string): Promise<void> {
+  try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -169,12 +157,14 @@ export function notifierPaiementExpire(orderId: string): void {
         titreProduit,
       }),
     });
-  });
+  } catch (err) {
+    console.error("[emails] erreur notifierPaiementExpire:", err);
+  }
 }
 
 /** Envoie un email au producteur quand son onboarding Stripe est terminé. */
-export function notifierOnboardingTermine(stripeAccountId: string): void {
-  planifier(async () => {
+export async function notifierOnboardingTermine(stripeAccountId: string): Promise<void> {
+  try {
     const user = await prisma.user.findUnique({
       where: { stripeAccountId },
       select: { email: true, displayName: true, emailNotifications: true },
@@ -188,5 +178,7 @@ export function notifierOnboardingTermine(stripeAccountId: string): void {
       to: user.email,
       ...emailOnboardingTermine({ displayName: user.displayName }),
     });
-  });
+  } catch (err) {
+    console.error("[emails] erreur notifierOnboardingTermine:", err);
+  }
 }

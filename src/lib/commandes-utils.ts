@@ -92,6 +92,6 @@ export async function traiterCommandePayee(
 
   // Envoyer les emails APRES la transaction (dans after(), non bloquant)
   if (traitee) {
-    notifierCommandePayee(orderId);
+    await notifierCommandePayee(orderId);
   }
 }
