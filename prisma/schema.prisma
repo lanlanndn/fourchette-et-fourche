@@ -26,6 +26,7 @@ model User {
   bio           String?
   avatarUrl     String?
   siret         String? // producteurs (et restaurateurs si souhaité)
+  tvaIntracom   String? // numéro de TVA intracommunautaire (ex : FR12345678901)
 
   // Localisation
   address       String?
@@ -105,6 +106,7 @@ model Listing {
   description String?
   category    Category
   priceCents  Int // TOUJOURS en centimes (ex : 250 = 2,50 €)
+  tvaCents    Int @default(550) // taux de TVA en centièmes de point : 0, 550 (5,5 %), 1000 (10 %), 2000 (20 %)
   unit        Unit
   quantityAvailable Int
   quantitySold      Int @default(0)
@@ -196,6 +198,7 @@ model Order {
   updatedAt DateTime @updatedAt
 
   items OrderItem[]
+  invoices Invoice[]
 
   @@index([buyerId])
 }
@@ -211,6 +214,34 @@ model OrderItem {
   subtotalCents  Int
 
   @@index([orderId])
+}
+
+// ---------- Facturation ----------
+
+enum InvoiceType {
+  ACHETEUR // FA — plateforme → restaurateur
+  VENTE // FV — autofacturation au nom du producteur
+  COMMISSION // FC — plateforme → producteur (10 %)
+}
+
+model Invoice {
+  id              String      @id @default(cuid())
+  numero          String      @unique // ex : FA-2026-00001
+  type            InvoiceType
+  orderId         String
+  order           Order       @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  emitPourUserId  String? // le producteur pour FV/FC (null pour FA)
+  sequence        Int
+  annee           Int
+  montantHtCents  Int
+  tvaCents        Int
+  montantTtcCents Int
+  storagePath     String? // chemin dans le bucket privé "factures" (null si upload raté → rattrapage)
+  createdAt       DateTime    @default(now())
+
+  @@unique([type, sequence, annee])
+  @@index([orderId])
+  @@index([emitPourUserId])
 }
 
 // ---------- Avis ----------

@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import type { Listing } from "@prisma/client";
 import type { EtatFormulaire } from "@/lib/actions/auth";
-import { CATEGORIES, UNITES, CERTIFICATIONS } from "@/lib/constantes";
+import { CATEGORIES, UNITES, CERTIFICATIONS, TAUX_TVA_OPTIONS } from "@/lib/constantes";
 import MessageFormulaire from "@/components/forms/MessageFormulaire";
 import BoutonEnvoi from "@/components/forms/BoutonEnvoi";
 import UploadPhotos from "@/components/forms/UploadPhotos";
@@ -94,11 +94,11 @@ export default function FormulaireAnnonce({ action, listing, adresseProducteur }
         </div>
       </div>
 
-      {/* Ligne : Prix + Quantité */}
-      <div className="grid gap-5 sm:grid-cols-2">
+      {/* Ligne : Prix + Quantité + TVA */}
+      <div className="grid gap-5 sm:grid-cols-3">
         <div>
           <label htmlFor="prixEuros" className={classeLabel}>
-            Prix <span className="font-medium normal-case tracking-normal text-encre-doux">(€)</span>
+            Prix TTC <span className="font-medium normal-case tracking-normal text-encre-doux">(€)</span>
           </label>
           <input
             id="prixEuros"
@@ -124,6 +124,23 @@ export default function FormulaireAnnonce({ action, listing, adresseProducteur }
             defaultValue={listing?.quantityAvailable ?? ""}
             className={classeChamp}
           />
+        </div>
+        <div>
+          <label htmlFor="tvaCents" className={classeLabel}>
+            Taux de TVA
+          </label>
+          <select
+            id="tvaCents"
+            name="tvaCents"
+            defaultValue={listing ? String(listing.tvaCents ?? 550) : "550"}
+            className={classeChamp}
+          >
+            {TAUX_TVA_OPTIONS.map((taux) => (
+              <option key={taux.valeur} value={taux.valeur}>
+                {taux.libelle}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

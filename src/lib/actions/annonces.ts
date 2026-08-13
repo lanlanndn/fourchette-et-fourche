@@ -26,6 +26,7 @@ const schemaAnnonce = z.object({
   category: z.enum(CATEGORIES_IDS, { message: "Choisis une catégorie." }),
   prixEuros: z.string().regex(/^\d+([.,]\d{1,2})?$/, "Prix invalide (ex : 3,50)."),
   unit: z.enum(UNITES_IDS, { message: "Choisis une unité." }),
+  tvaCents: z.enum(["0", "550", "1000", "2000"], { message: "Choisis un taux de TVA." }),
   quantityAvailable: z.coerce.number().int().min(1, "La quantité doit être d'au moins 1."),
   certifications: z.array(z.string()).optional(),
   adresse: z.string().optional(),
@@ -66,6 +67,7 @@ export async function createListingAction(
     category: formData.get("category"),
     prixEuros: formData.get("prixEuros"),
     unit: formData.get("unit"),
+    tvaCents: formData.get("tvaCents"),
     quantityAvailable: formData.get("quantityAvailable"),
     certifications: formData.getAll("certifications").map(String),
     adresse: formData.get("adresse") || undefined,
@@ -76,7 +78,7 @@ export async function createListingAction(
   if (!validation.success) {
     return { erreur: validation.error.issues[0].message };
   }
-  const { title, description, category, prixEuros, unit, quantityAvailable, certifications, adresse, photos } =
+  const { title, description, category, prixEuros, unit, tvaCents, quantityAvailable, certifications, adresse, photos } =
     validation.data;
 
   const priceCents = eurosVersCentimes(prixEuros);
@@ -114,6 +116,7 @@ export async function createListingAction(
       description: description ?? null,
       category: category as never,
       priceCents,
+      tvaCents: Number(tvaCents),
       unit: unit as never,
       quantityAvailable,
       certifications: certifications ?? [],
@@ -150,6 +153,7 @@ export async function updateListingAction(
     category: formData.get("category"),
     prixEuros: formData.get("prixEuros"),
     unit: formData.get("unit"),
+    tvaCents: formData.get("tvaCents"),
     quantityAvailable: formData.get("quantityAvailable"),
     certifications: formData.getAll("certifications").map(String),
     adresse: formData.get("adresse") || undefined,
@@ -160,7 +164,7 @@ export async function updateListingAction(
   if (!validation.success) {
     return { erreur: validation.error.issues[0].message };
   }
-  const { title, description, category, prixEuros, unit, quantityAvailable, certifications, adresse, photos } =
+  const { title, description, category, prixEuros, unit, tvaCents, quantityAvailable, certifications, adresse, photos } =
     validation.data;
 
   const priceCents = eurosVersCentimes(prixEuros);
@@ -190,6 +194,7 @@ export async function updateListingAction(
       description: description ?? null,
       category: category as never,
       priceCents,
+      tvaCents: Number(tvaCents),
       unit: unit as never,
       quantityAvailable,
       certifications: certifications ?? [],

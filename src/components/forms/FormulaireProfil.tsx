@@ -70,6 +70,24 @@ export default function FormulaireProfil({ user }: { user: User }) {
       </div>
 
       <div>
+        <label htmlFor="tvaIntracom" className={classeLabel}>
+          Numéro de TVA intracommunautaire{" "}
+          <span className="font-medium normal-case tracking-normal text-encre-doux">
+            (facultatif — apparaît sur vos factures)
+          </span>
+        </label>
+        <input
+          id="tvaIntracom"
+          name="tvaIntracom"
+          type="text"
+          maxLength={13}
+          defaultValue={user.tvaIntracom ?? ""}
+          placeholder="FR12345678901"
+          className={classeChamp}
+        />
+      </div>
+
+      <div>
         <label htmlFor="adresse" className={classeLabel}>
           Adresse {estProducteur ? "de l'exploitation" : "du restaurant"}
         </label>

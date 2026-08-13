@@ -53,6 +53,15 @@ export const UNITES: Record<string, string> = {
   DOUZAINE: "douzaine",
 };
 
+// Taux de TVA proposés dans le formulaire d'annonce.
+// `valeur` = centièmes de point (550 = 5,5 %), stocké dans Listing.tvaCents.
+export const TAUX_TVA_OPTIONS = [
+  { valeur: 0, libelle: "0 % (exonéré)" },
+  { valeur: 550, libelle: "5,5 %" },
+  { valeur: 1000, libelle: "10 %" },
+  { valeur: 2000, libelle: "20 %" },
+] as const;
+
 // Encre peinte associée à chaque catégorie (étiquettes, marqueurs, plaques).
 // `texte` garantit un contraste lisible sur `fond`.
 export const COULEURS_CATEGORIES: Record<

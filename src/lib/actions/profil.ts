@@ -15,6 +15,10 @@ const schemaProfil = z.object({
     .string()
     .regex(/^(\d{14})?$/, "Le SIRET doit contenir 14 chiffres.")
     .optional(),
+  tvaIntracom: z
+    .string()
+    .regex(/^(FR[0-9A-Za-z]{11})?$/, "Format attendu : FR suivi de 11 caractères (ex : FR12345678901).")
+    .optional(),
   adresse: z.string().optional(),
   certifications: z.array(z.string()).optional(),
   emailNotifications: z.boolean().optional(),
@@ -31,6 +35,7 @@ export async function updateProfilAction(
     phone: formData.get("phone") || undefined,
     bio: formData.get("bio") || undefined,
     siret: formData.get("siret") || undefined,
+    tvaIntracom: formData.get("tvaIntracom") || undefined,
     adresse: formData.get("adresse") || undefined,
     certifications: formData.getAll("certifications").map(String),
     emailNotifications: formData.get("emailNotifications") === "on",
@@ -40,7 +45,7 @@ export async function updateProfilAction(
   if (!validation.success) {
     return { erreur: validation.error.issues[0].message };
   }
-  const { displayName, phone, bio, siret, adresse, certifications, emailNotifications } =
+  const { displayName, phone, bio, siret, tvaIntracom, adresse, certifications, emailNotifications } =
     validation.data;
 
   // Géocodage de l'adresse si elle est renseignée
@@ -62,6 +67,7 @@ export async function updateProfilAction(
       phone: phone ?? null,
       bio: bio ?? null,
       siret: siret || null,
+      tvaIntracom: tvaIntracom ? tvaIntracom.toUpperCase() : null,
       certifications: certifications ?? [],
       emailNotifications: emailNotifications ?? true,
       ...(geo && {

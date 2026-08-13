@@ -18,6 +18,7 @@ function producteur(
     phone: "06 00 00 00 00",
     avatarUrl: null,
     siret: null,
+    tvaIntracom: null,
     address: null,
     isVerified: true,
     emailNotifications: true,
@@ -37,6 +38,7 @@ function annonce(
   return {
     photos: [],
     quantitySold: 0,
+    tvaCents: 550,
     address: null,
     isActive: true,
     createdAt: MAINTENANT,
