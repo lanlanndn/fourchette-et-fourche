@@ -43,9 +43,9 @@
 
 ---
 
-## 4. État d'avancement (12 août 2026)
+## 4. État d'avancement (13 août 2026)
 
-**Toutes les phases sont terminées et déployées** ✅
+**Phases 0–8 terminées** ✅ — Phase 9 planifiée
 
 | Phase | Contenu |
 |---|---|
@@ -57,10 +57,12 @@
 | 5 — Paiement | **Stripe Connect mode test** : onboarding producteur (Express), checkout (Checkout Session + destination charges), webhook `/api/webhooks/stripe`, pages commandes. Commission 10 %. |
 | 6 — Finitions | SEO, page 404, mode démo (8 producteurs + 16 annonces factices) |
 | 7 — Emails | **Resend** : 5 templates (confirmation commande, nouvelle commande, nouveau message, paiement expiré, onboarding). Envoi synchrone (pas de fire-and-forget — Vercel coupe les tâches d'arrière-plan). Préférence `emailNotifications`. Route de diagnostic `/api/test-email`. |
+| 8 — Facturation | **Factur-X natif (pdf-lib)** : à chaque commande payée, 3 factures générées automatiquement — FA (acheteur, total TTC), FV (vente autofacturée au nom du producteur), FC (commission 10 % + TVA 20 %). PDF/A-3 avec XML CII intégré (profil BASIC WL), stockés dans le bucket **privé** `factures`, envoyés par email Resend en pièces jointes, téléchargeables via URL signée. Pages `/tableau-de-bord/factures` + bloc factures sur le détail commande. Route de diagnostic/rattrapage `/api/test-facture`. TVA par annonce (`Listing.tvaCents`, défaut 5,5 %), numéro TVA intracom sur le profil. Infos société via env `SOCIETE_*`. À prévoir avant le go-live : connexion PDP pour la réforme e-invoicing 2026-2028. |
+| 9 — Livraison | 📋 **Planifié** — **ShipEngine** (multi-transporteurs : Mondial Relay, Colissimo, Chronopost) : étiquettes d'expédition, tracking, frais de port dans la commande. Alternative : statut manuel "Expédié" + lien tracking saisi par le producteur. |
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 
-**Prochaines étapes** (quand Landry sera prêt) : acheter `fourchette-et-fourche.fr` (~10 €/an), vérifier le domaine dans Resend, passer Stripe en mode live.
+**Prochaines étapes** (quand Landry sera prêt) : acheter `fourchette-et-fourche.fr` (~10 €/an), vérifier le domaine dans Resend, compléter les `SOCIETE_*` (SIRET, TVA intracom, adresse), passer Stripe en mode live, puis Phase 9 (livraison).
 
 ### Comptes
 - **Supabase** : projet `tnwefomjxcbsallmcsvf` — PostgreSQL, Auth, Storage (bucket `annonces`, RLS)
@@ -100,12 +102,21 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - Badge de notification sur l'onglet Commandes (pastille garance, comme la messagerie).
 
 ### Emails (`src/lib/emails/`)
-- `envoi.ts` : client Resend paresseux, détection clé absente/placeholder → skip silencieux.
+- `envoi.ts` : client Resend paresseux, détection clé absente/placeholder → skip silencieux. Supporte `attachments` (pièces jointes).
 - `gabarit.ts` : palette, layout HTML 600 px (table inline), `echapperHtml()`, `urlApp()`.
-- `templates.ts` : 5 contenus (confirmation acheteur, nouvelle commande, nouveau message, paiement expiré, onboarding terminé).
+- `templates.ts` : 7 contenus (confirmation acheteur, nouvelle commande, nouveau message, paiement expiré, onboarding terminé, facture acheteur, factures producteur).
 - `notifications.ts` : 4 notifiers publics, chacun planifie l'envoi dans `after()` de `next/server` (non bloquant).
-- **Règle** : emails de commande = toujours ; emails informatifs = respectent `User.emailNotifications`.
+- **Règle** : emails de commande/factures = toujours ; emails informatifs = respectent `User.emailNotifications`.
 - **Piège** : `RESEND_API_KEY` placeholder `re_a-coller-plus-tard` → emails silencieusement désactivés. Clé réelle = `re_` + longueur.
+
+### Facturation (`src/lib/facturation/`)
+- `generer.ts` : `genererFacturesCommande(orderId)` — orchestration **idempotente, ne lève jamais** (appelée depuis `traiterCommandePayee`). Génère FA/FV/FC → XML → PDF → upload bucket privé → emails avec PJ. Auto-réparation si une row a un `storagePath` vide.
+- `xml.ts` : XML CII Factur-X **BASIC WL** (`urn:factur-x.eu:1p0:minimum`). `pdf.ts` : PDF/A-3 via pdf-lib (XMP injecté à la main, OutputIntent sRGB, `attach` avec `AFRelationship.Data`, polices standard Helvetica).
+- `constantes.ts` : préfixes FA/FV/FC, `ventilerTva()` (arrondis lignes ↔ totaux cohérents), codes UNECE, `infosSociete()` (env `SOCIETE_*`).
+- Modèle `Invoice` (Prisma) : numéro `FA-2026-00001`, `@@unique([type, sequence, annee])`, séquence par type+année avec retry P2002.
+- Téléchargement : `/api/factures/[id]/telecharger` (autorisation par rôle, URL signée 60 s via `src/lib/supabase/admin.ts`). Bucket **privé** `factures` (créé par `scripts/creer-bucket-factures.mjs`).
+- Diagnostic/rattrapage : `GET /api/test-facture?orderId=…`.
+- **Piège** : ne jamais `after()`/fire-and-forget pour la génération — tout est `await` dans le flux principal.
 
 ### Styles — monde « Enseigne peinte » (voir `DESIGN.md`)
 - Polices : Caprasimo (`font-affiche`) + Chivo (`font-texte`).
@@ -141,4 +152,4 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 
 ---
 
-*Dernière mise à jour : 12 août 2026 — Phases 0–7 terminées. Emails Resend fonctionnels (5 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 13 août 2026 — Phases 0–8 terminées. Phase 9 planifiée. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission) déployée. Emails Resend fonctionnels (7 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*

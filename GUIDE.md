@@ -50,13 +50,27 @@ Dis-moi simplement en français ce que tu veux, par exemple :
 
 Je fais la modification, je vérifie que tout marche, et je te dis quand c'est prêt à tester.
 
-## 6. Avant d'encaisser de vrais paiements (checklist)
+## 6. Les factures (Phase 8)
+
+À chaque commande payée, la plateforme génère automatiquement **3 factures au format Factur-X** (le format officiel de la facturation électronique française) :
+
+1. **L'acheteur** (restaurateur) reçoit sa facture d'achat (montant total).
+2. **Le vendeur** (producteur) reçoit sa facture de vente (éditée automatiquement par la plateforme en son nom) et la facture de la commission de 10 %.
+
+Les PDF sont envoyés par email et restent consultables dans le tableau de bord, onglet « **Mes factures** ».
+
+Avant d'encaisser de vrais paiements :
+- Complète les informations de ta société dans les réglages (fichier `.env.local` et variables Vercel) : `SOCIETE_SIRET`, `SOCIETE_TVA_INTRA`, `SOCIETE_ADRESSE`, `SOCIETE_VILLE`, `SOCIETE_CODE_POSTAL`. Tant qu'elles sont vides, les factures affichent « à compléter ».
+- Fais valider les taux de TVA par ton comptable (alimentaire : 5,5 % par défaut, modifiable sur chaque annonce).
+
+## 7. Avant d'encaisser de vrais paiements (checklist)
 
 - [ ] Créer ton statut d'**auto-entrepreneur** (gratuit, sur autoentrepreneur.urssaf.fr) — obligatoire pour Stripe
 - [ ] Activer le compte Stripe avec tes infos d'entreprise
+- [ ] Compléter les informations société (`SOCIETE_*`) pour les factures (voir section 6)
 - [ ] Rédiger CGV + mentions légales (je peux générer des gabarits à faire valider par un pro)
 - [ ] Choisir le nom de domaine (~10-15 €/an, ex. sur OVH ou Gandi)
 
 ---
 
-*Ce guide grandira au fil du projet. Dernière mise à jour : Phase 0.*
+*Ce guide grandira au fil du projet. Dernière mise à jour : Phase 8 (facturation).*
