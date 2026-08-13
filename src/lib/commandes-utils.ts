@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { formaterPrix } from "@/lib/constantes";
 import { notifierCommandePayee } from "@/lib/emails/notifications";
+import { genererFacturesCommande } from "@/lib/facturation/generer";
 
 /**
  * Traite une commande après paiement réussi.
@@ -93,5 +94,17 @@ export async function traiterCommandePayee(
   // Envoyer les emails APRES la transaction (dans after(), non bloquant)
   if (traitee) {
     await notifierCommandePayee(orderId);
+
+    // Facturation Factur-X (3 factures + emails avec pièces jointes).
+    // Ne doit JAMAIS casser le flux commande : la fonction ne lève pas
+    // et ses erreurs sont journalisées avec le préfixe [facturation].
+    try {
+      const resultat = await genererFacturesCommande(orderId);
+      if (!resultat.ok || resultat.erreurs.length > 0) {
+        console.error("[facturation] commande", orderId, "— erreurs :", resultat.erreurs);
+      }
+    } catch (err) {
+      console.error("[facturation] erreur inattendue pour la commande", orderId, ":", err);
+    }
   }
 }
