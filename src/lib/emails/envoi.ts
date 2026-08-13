@@ -22,12 +22,20 @@ export function expediteur(): string {
   return process.env.EMAIL_FROM ?? "Fourchette & Fourche <onboarding@resend.dev>";
 }
 
+/** Pièce jointe d'un email (acceptée par Resend : contenu Buffer ou base64). */
+export type PieceJointe = {
+  filename: string;
+  content: Buffer | string;
+  contentType?: string;
+};
+
 /** Envoie un email. Retourne { ok: true } ou { ok: false, erreur } — ne lève jamais. */
 export async function envoyerEmail(params: {
   to: string;
   subject: string;
   html: string;
   text: string;
+  attachments?: PieceJointe[];
 }): Promise<{ ok: boolean; erreur?: string }> {
   const resend = getResend();
   if (!resend) {
@@ -42,6 +50,7 @@ export async function envoyerEmail(params: {
       subject: params.subject,
       html: params.html,
       text: params.text,
+      attachments: params.attachments,
     });
 
     if (error) {
