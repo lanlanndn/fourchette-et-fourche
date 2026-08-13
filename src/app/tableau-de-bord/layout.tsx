@@ -24,6 +24,7 @@ export default async function LayoutTableauDeBord({
       ? [{ href: "/tableau-de-bord/annonces", label: "Mes annonces" }]
       : []),
     { href: "/tableau-de-bord/commandes", label: "Commandes" },
+    { href: "/tableau-de-bord/factures", label: "Mes factures" },
     { href: "/tableau-de-bord/messagerie", label: "Messagerie" },
     { href: "/tableau-de-bord/profil", label: "Mon profil" },
   ];

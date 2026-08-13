@@ -5,6 +5,10 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { STATUTS_COMMANDE, formaterPrix, UNITES } from "@/lib/constantes";
 import { nomDepartement } from "@/lib/geo-metadata";
+import {
+  BADGES_TYPES_FACTURES,
+  LIBELLES_COURTS_FACTURES,
+} from "@/lib/facturation/constantes";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -35,6 +39,7 @@ export default async function CommandeDetailPage({ params }: Props) {
         },
       },
       buyer: { select: { id: true, displayName: true } },
+      invoices: true,
     },
   });
 
@@ -166,6 +171,49 @@ export default async function CommandeDetailPage({ params }: Props) {
           )}
         </dl>
       </div>
+
+      {/* Factures */}
+      {order.status === "PAID" && (
+        <div className="mt-6 space-y-3">
+          <h2 className="font-affiche text-lg text-encre uppercase">Factures</h2>
+          {order.invoices.length === 0 ? (
+            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-4 text-sm text-encre-doux">
+              Les factures de cette commande sont en cours de génération.
+              Retrouvez-les dans l&apos;onglet «&nbsp;Mes factures&nbsp;».
+            </div>
+          ) : (
+            order.invoices.map((facture) => (
+              <div
+                key={facture.id}
+                className="relief-doux flex items-center justify-between border-2 border-encre bg-[#fbf7ec] p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`rounded-sm px-2.5 py-1 text-xs font-bold tracking-wider uppercase ${BADGES_TYPES_FACTURES[facture.type]}`}
+                  >
+                    {LIBELLES_COURTS_FACTURES[facture.type]}
+                  </span>
+                  <p className="font-texte text-sm font-bold text-encre">
+                    {facture.numero}
+                  </p>
+                </div>
+                {facture.storagePath ? (
+                  <Link
+                    href={`/api/factures/${facture.id}/telecharger`}
+                    className="text-xs font-bold tracking-wide text-outremer underline transition-colors hover:text-garance"
+                  >
+                    Télécharger le PDF
+                  </Link>
+                ) : (
+                  <span className="text-xs text-encre-doux italic">
+                    PDF en cours de génération
+                  </span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
