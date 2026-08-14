@@ -14,10 +14,13 @@ export default async function FacturesPage() {
   const user = await requireUser();
   const estProducteur = user.role === "PRODUCTEUR";
 
+  // Rôles : le restaurateur voit ses factures d'achat, le producteur ses
+  // factures de vente. La facture de commission est le document de la
+  // plateforme — elle n'apparaît dans aucun des deux tableaux de bord.
   const factures = await prisma.invoice.findMany({
     where: estProducteur
-      ? { emitPourUserId: user.id }
-      : { order: { buyerId: user.id } },
+      ? { emitPourUserId: user.id, type: "VENTE" }
+      : { order: { buyerId: user.id }, type: "ACHETEUR" },
     include: {
       order: { select: { createdAt: true, totalCents: true } },
     },
@@ -29,7 +32,7 @@ export default async function FacturesPage() {
       <h1 className="font-affiche text-3xl text-encre uppercase">Mes factures</h1>
       <p className="mt-1 text-sm text-encre-doux">
         {estProducteur
-          ? "Vos factures de vente et de commission sont générées automatiquement à chaque commande payée, au format Factur-X."
+          ? "Vos factures de vente sont générées automatiquement à chaque commande payée, au format Factur-X."
           : "Vos factures d'achat sont générées automatiquement à chaque commande payée, au format Factur-X."}
       </p>
 

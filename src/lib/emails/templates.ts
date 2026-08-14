@@ -231,14 +231,12 @@ export function emailFactureAcheteur(params: {
   };
 }
 
-// ---------- Factures producteur (vente + commission) ----------
+// ---------- Facture de vente producteur ----------
 
-export function emailFacturesProducteur(params: {
+export function emailFactureVente(params: {
   displayName: string;
   numeroVente: string;
-  numeroCommission: string;
   totalCents: number;
-  commissionCents: number;
   orderId: string;
 }): ContenuEmail {
   const contenu = `
@@ -246,27 +244,17 @@ export function emailFacturesProducteur(params: {
       Bonjour ${echapperHtml(params.displayName)},
     </p>
     <p style="font-size:15px;margin:0 0 16px 0;line-height:1.5;">
-      Voici les factures liées à votre vente de ${formaterPrixEmail(params.totalCents)} :
+      Votre facture de vente <strong>${echapperHtml(params.numeroVente)}</strong> (${formaterPrixEmail(params.totalCents)}) est jointe à cet email, au format Factur-X.
     </p>
-    <table cellpadding="8" cellspacing="0" border="0" width="100%" style="border:2px solid #28221b;border-collapse:collapse;margin-bottom:16px;">
-      <tr>
-        <td style="font-size:14px;">Facture de vente (autofacturation)</td>
-        <td style="font-size:14px;text-align:right;font-weight:600;">${echapperHtml(params.numeroVente)}</td>
-      </tr>
-      <tr style="background-color:#e3d7bc;">
-        <td style="font-size:14px;">Facture de commission (10 %)</td>
-        <td style="font-size:14px;text-align:right;font-weight:600;">${echapperHtml(params.numeroCommission)}</td>
-      </tr>
-    </table>
     <p style="font-size:14px;margin:0 0 0 0;line-height:1.5;color:#6b5f4e;">
-      Les deux factures (format Factur-X) sont jointes à cet email. Vous les retrouverez aussi dans votre espace, onglet «&nbsp;Mes factures&nbsp;».
+      Vous la retrouverez aussi à tout moment dans votre espace, onglet «&nbsp;Mes factures&nbsp;».
     </p>
   `;
 
   return {
-    subject: `Vos factures ${params.numeroVente} et ${params.numeroCommission}`,
+    subject: `Votre facture de vente ${params.numeroVente}`,
     ...gabaritEmail({
-      titre: "Vos factures de vente",
+      titre: "Votre facture de vente",
       contenu,
       cta: { texte: "Voir mes factures", url: urlApp("/tableau-de-bord/factures") },
     }),

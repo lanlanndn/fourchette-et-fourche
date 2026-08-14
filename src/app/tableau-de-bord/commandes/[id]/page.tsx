@@ -60,6 +60,13 @@ export default async function CommandeDetailPage({ params }: Props) {
     classe: "bg-platre-fonce text-encre-doux",
   };
 
+  // Factures visibles selon le rôle : l'acheteur voit sa facture d'achat,
+  // le producteur sa facture de vente. La facture de commission est le
+  // document de la plateforme — elle n'est affichée à aucun des deux.
+  const facturesVisibles = order.invoices.filter((facture) =>
+    estAcheteur ? facture.type === "ACHETEUR" : facture.type === "VENTE",
+  );
+
   // Montant net pour le producteur (total - commission)
   const netCents = order.totalCents - order.commissionCents;
 
@@ -176,13 +183,13 @@ export default async function CommandeDetailPage({ params }: Props) {
       {order.status === "PAID" && (
         <div className="mt-6 space-y-3">
           <h2 className="font-affiche text-lg text-encre uppercase">Factures</h2>
-          {order.invoices.length === 0 ? (
+          {facturesVisibles.length === 0 ? (
             <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-4 text-sm text-encre-doux">
               Les factures de cette commande sont en cours de génération.
               Retrouvez-les dans l&apos;onglet «&nbsp;Mes factures&nbsp;».
             </div>
           ) : (
-            order.invoices.map((facture) => (
+            facturesVisibles.map((facture) => (
               <div
                 key={facture.id}
                 className="relief-doux flex items-center justify-between border-2 border-encre bg-[#fbf7ec] p-4"

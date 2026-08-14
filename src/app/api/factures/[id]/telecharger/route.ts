@@ -6,7 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /**
  * Téléchargement d'une facture (bucket privé → URL signée 60 s).
  * GET /api/factures/{id}/telecharger
- * Autorisation : FA → l'acheteur de la commande ; FV/FC → le producteur émetteur.
+ * Autorisation : FA → l'acheteur de la commande ; FV → le producteur émetteur ;
+ * FC → personne (document de la plateforme, conservé en interne).
  */
 type Props = { params: Promise<{ id: string }> };
 
@@ -29,7 +30,7 @@ export async function GET(_request: Request, { params }: Props) {
   const estAcheteur =
     facture.type === "ACHETEUR" && facture.order.buyerId === user.id;
   const estProducteurConcerne =
-    facture.type !== "ACHETEUR" && facture.emitPourUserId === user.id;
+    facture.type === "VENTE" && facture.emitPourUserId === user.id;
   if (!estAcheteur && !estProducteurConcerne) {
     return NextResponse.json({ erreur: "Interdit" }, { status: 403 });
   }

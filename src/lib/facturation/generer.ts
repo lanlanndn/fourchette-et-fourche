@@ -10,7 +10,7 @@ import { UNITES } from "@/lib/constantes";
 import { envoyerEmail } from "@/lib/emails/envoi";
 import {
   emailFactureAcheteur,
-  emailFacturesProducteur,
+  emailFactureVente,
 } from "@/lib/emails/templates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { construirePdfFacturX } from "./pdf";
@@ -260,35 +260,26 @@ export async function genererFacturesCommande(
       });
     }
 
+    // La facture de vente (FV) est envoyée au producteur. La facture de
+    // commission (FC) est le document de la plateforme : elle est stockée
+    // mais n'est envoyée à personne.
     const fv = generesParType.get("VENTE");
-    const fc = generesParType.get("COMMISSION");
-    if (fv || fc) {
-      const piecesJointes: Array<{ filename: string; content: Buffer; contentType: string }> = [];
-      if (fv) {
-        piecesJointes.push({
-          filename: `${fv.numero}.pdf`,
-          content: Buffer.from(fv.pdf),
-          contentType: "application/pdf",
-        });
-      }
-      if (fc) {
-        piecesJointes.push({
-          filename: `${fc.numero}.pdf`,
-          content: Buffer.from(fc.pdf),
-          contentType: "application/pdf",
-        });
-      }
+    if (fv) {
       await envoyerEmail({
         to: producteur.email,
-        ...emailFacturesProducteur({
+        ...emailFactureVente({
           displayName: producteur.displayName,
           numeroVente: numeroDe("VENTE"),
-          numeroCommission: numeroDe("COMMISSION"),
           totalCents: order.totalCents,
-          commissionCents: order.commissionCents,
           orderId,
         }),
-        attachments: piecesJointes,
+        attachments: [
+          {
+            filename: `${fv.numero}.pdf`,
+            content: Buffer.from(fv.pdf),
+            contentType: "application/pdf",
+          },
+        ],
       });
     }
 
