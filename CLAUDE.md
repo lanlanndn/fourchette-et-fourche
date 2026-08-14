@@ -43,7 +43,7 @@
 
 ---
 
-## 4. État d'avancement (13 août 2026)
+## 4. État d'avancement (14 août 2026)
 
 **Phases 0–8 terminées** ✅ — Phase 9 planifiée
 
@@ -57,7 +57,7 @@
 | 5 — Paiement | **Stripe Connect mode test** : onboarding producteur (Express), checkout (Checkout Session + destination charges), webhook `/api/webhooks/stripe`, pages commandes. Commission 10 %. |
 | 6 — Finitions | SEO, page 404, mode démo (8 producteurs + 16 annonces factices) |
 | 7 — Emails | **Resend** : 5 templates (confirmation commande, nouvelle commande, nouveau message, paiement expiré, onboarding). Envoi synchrone (pas de fire-and-forget — Vercel coupe les tâches d'arrière-plan). Préférence `emailNotifications`. Route de diagnostic `/api/test-email`. |
-| 8 — Facturation | **Factur-X natif (pdf-lib)** : à chaque commande payée, 3 factures générées automatiquement — FA (acheteur, total TTC), FV (vente autofacturée au nom du producteur), FC (commission 10 % + TVA 20 %). PDF/A-3 avec XML CII intégré (profil BASIC WL), stockés dans le bucket **privé** `factures`, envoyés par email Resend en pièces jointes, téléchargeables via URL signée. Pages `/tableau-de-bord/factures` + bloc factures sur le détail commande. Route de diagnostic/rattrapage `/api/test-facture`. TVA par annonce (`Listing.tvaCents`, défaut 5,5 %), numéro TVA intracom sur le profil. Infos société via env `SOCIETE_*`. À prévoir avant le go-live : connexion PDP pour la réforme e-invoicing 2026-2028. |
+| 8 — Facturation | **Factur-X natif (pdf-lib)** : à chaque commande payée, 3 factures générées automatiquement — FA (acheteur, total TTC), FV (vente autofacturée au nom du producteur), FC (commission 10 % + TVA 20 %). PDF/A-3 avec XML CII intégré (profil BASIC WL), stockés dans le bucket **privé** `factures`, envoyés par email Resend en pièces jointes, téléchargeables via URL signée. **Visibilité par rôle** : acheteur → FA seule, producteur → FV seule (page + email) ; FC = document interne plateforme (stockée, non affichée, téléchargement 403). Pages `/tableau-de-bord/factures` + bloc factures sur le détail commande. Route de diagnostic/rattrapage `/api/test-facture`. TVA par annonce (`Listing.tvaCents`, défaut 5,5 %), numéro TVA intracom sur le profil. Infos société via env `SOCIETE_*`. À prévoir avant le go-live : connexion PDP pour la réforme e-invoicing 2026-2028. |
 | 9 — Livraison | 📋 **Planifié** — **ShipEngine** (multi-transporteurs : Mondial Relay, Colissimo, Chronopost) : étiquettes d'expédition, tracking, frais de port dans la commande. Alternative : statut manuel "Expédié" + lien tracking saisi par le producteur. |
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
@@ -65,7 +65,7 @@ Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 **Prochaines étapes** (quand Landry sera prêt) : acheter `fourchette-et-fourche.fr` (~10 €/an), vérifier le domaine dans Resend, compléter les `SOCIETE_*` (SIRET, TVA intracom, adresse), passer Stripe en mode live, puis Phase 9 (livraison).
 
 ### Comptes
-- **Supabase** : projet `tnwefomjxcbsallmcsvf` — PostgreSQL, Auth, Storage (bucket `annonces`, RLS)
+- **Supabase** : projet `tnwefomjxcbsallmcsvf` — PostgreSQL, Auth, Storage (bucket public `annonces` RLS, bucket **privé** `factures`)
 - **GitHub** : `lanlanndn/fourchette-et-fourche` (branche `main`)
 - **Vercel** : déploiement auto depuis GitHub — variables : `DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM`, clés Stripe, etc.
 - **Stripe** : mode test — webhook `/api/webhooks/stripe`
@@ -113,9 +113,10 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - `generer.ts` : `genererFacturesCommande(orderId)` — orchestration **idempotente, ne lève jamais** (appelée depuis `traiterCommandePayee`). Génère FA/FV/FC → XML → PDF → upload bucket privé → emails avec PJ. Auto-réparation si une row a un `storagePath` vide.
 - `xml.ts` : XML CII Factur-X **BASIC WL** (`urn:factur-x.eu:1p0:minimum`). `pdf.ts` : PDF/A-3 via pdf-lib (XMP injecté à la main, OutputIntent sRGB, `attach` avec `AFRelationship.Data`, polices standard Helvetica).
 - `constantes.ts` : préfixes FA/FV/FC, `ventilerTva()` (arrondis lignes ↔ totaux cohérents), codes UNECE, `infosSociete()` (env `SOCIETE_*`).
-- Modèle `Invoice` (Prisma) : numéro `FA-2026-00001`, `@@unique([type, sequence, annee])`, séquence par type+année avec retry P2002.
+- Modèle `Invoice` (Prisma) : numéro `FA-2026-00001`, `@@unique([type, sequence, annee])`, séquence par type+annee avec retry P2002. **La row est créée AVANT le PDF** pour que le PDF porte le numéro définitif.
+- **Visibilité par rôle** : FA → `order.buyerId` ; FV → `emitPourUserId` ; FC → personne (403 au téléchargement). Appliqué sur `/tableau-de-bord/factures`, le détail commande et les emails (FA seule au restaurateur, FV seule au producteur).
 - Téléchargement : `/api/factures/[id]/telecharger` (autorisation par rôle, URL signée 60 s via `src/lib/supabase/admin.ts`). Bucket **privé** `factures` (créé par `scripts/creer-bucket-factures.mjs`).
-- Diagnostic/rattrapage : `GET /api/test-facture?orderId=…`.
+- Diagnostic/rattrapage : `GET /api/test-facture?orderId=…`. Maintenance : `scripts/regenerer-factures.mjs <orderIds…>` (supprime rows + fichiers pour régénérer — à lancer par Landry avec `!`).
 - **Piège** : ne jamais `after()`/fire-and-forget pour la génération — tout est `await` dans le flux principal.
 
 ### Styles — monde « Enseigne peinte » (voir `DESIGN.md`)
@@ -134,7 +135,12 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - **`revalidatePath` interdit pendant le rendu** (Server Component). Le faire uniquement dans une Server Action.
 - **Prisma `Listing` n'a pas de `postalCode`** → ne pas l'inclure dans les mutations.
 - **Prix** : formulaire envoie `prixEuros` (string "3,50"), l'action convertit en `priceCents` (entier 350).
-- **Vercel + Supabase** : utiliser le **Session pooler** (port 5432) avec `uselibpqcompat=true&sslmode=require`. Pas le pooler Transaction (port 6543) ni la connexion directe.
+- **Supabase — connexion directe IPv6 uniquement** : `db.<ref>.supabase.co:5432` ne résout qu'en AAAA depuis ~août 2026 → « Network is unreachable » sur les machines sans IPv6 (500 en local). Utiliser le **pooler session** : `postgresql://postgres.<ref>:<mdp>@aws-1-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require` (région de ce projet : eu-west-1, cluster aws-1 ; l'utilisateur DOIT être `postgres.<ref>`). Vercel (IPv6 OK) fonctionne avec l'ancienne URL — ne pas y toucher. **Ne pas modifier `.env.local` sans demander à Landry** (il gère son serveur local à la main).
+- **Prisma CLI ne lit pas `.env.local`** → préfixer avec `node --env-file=.env.local node_modules/.bin/prisma …`.
+- **`prisma migrate dev` impossible via le pooler** (pas de shadow DB) → procédure manuelle : `npx prisma migrate diff --from-schema-datamodel <ancien.prisma> --to-schema-datamodel prisma/schema.prisma --script` (ancien via `git show HEAD:prisma/schema.prisma`) → créer `prisma/migrations/<ts>_nom/migration.sql` → `prisma db execute --url <pooler> --file …` → INSERT dans `_prisma_migrations` (id, checksum = sha256 du fichier, migration_name, applied_steps_count).
+- **pdf-lib `attach()`** : une **chaîne** est interprétée comme du **base64** (comme ses autres API) → toujours passer `new TextEncoder().encode(xml)`. Vérifier les PDF générés en extrayant le flux EmbeddedFile (compressé zlib 0x789C → `zlib.inflateSync` ; le catalog est dans un ObjStm compressé, les noms avec espaces sont échappés `#20`).
+- **Numéro de facture** : attribuer la row Prisma (numéro définitif) AVANT de construire le PDF — sinon le PDF porte un numéro provisoire.
+- **Actions destructives sur la base partagée** : le classificateur les bloque — Landry les exécute lui-même en collant la commande précédée de `!` (ex : `scripts/regenerer-factures.mjs`).
 - **Navigateur sous VPN** : `xdg-open` inutile pour localhost → utiliser `chromium` directement.
 - **Commits** : `git -c user.name="Landry" -c user.email="landry@fourchette-fourche.local"` (pas de config git globale).
 - **Emails sur Vercel** : ne pas utiliser `after()` ou fire-and-forget pour l'envoi d'emails — Vercel serverless coupe les Promise non attendues. Toujours `await` l'envoi dans le flux principal (coût ~200 ms).
@@ -152,4 +158,4 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 
 ---
 
-*Dernière mise à jour : 13 août 2026 — Phases 0–8 terminées. Phase 9 planifiée. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission) déployée. Emails Resend fonctionnels (7 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 14 août 2026 — Phases 0–8 terminées et vérifiées de bout en bout. Phase 9 planifiée. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (7 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
