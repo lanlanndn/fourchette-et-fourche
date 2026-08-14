@@ -212,7 +212,9 @@ export async function construirePdfFacturX(
   );
 
   // 3) Pièce jointe factur-x.xml — AFRelationship Data exigé par le profil BASIC WL.
-  await doc.attach(xml, "factur-x.xml", {
+  //    Piège pdf-lib : une chaîne passée à attach() est interprétée comme du
+  //    base64 → toujours passer les octets UTF-8 du XML.
+  await doc.attach(new TextEncoder().encode(xml), "factur-x.xml", {
     mimeType: "application/xml",
     description: "Factur-X invoice",
     afRelationship: AFRelationship.Data,
