@@ -177,32 +177,42 @@ export async function genererFacturesCommande(
       if (existante && existante.storagePath) continue; // déjà générée
 
       try {
+        // 1) Row en base AVANT de construire le PDF : le numéro attribué
+        //    (ou réutilisé en réparation) doit être celui qui apparaît
+        //    dans le XML et le PDF — jamais un numéro provisoire.
+        const row =
+          existante ??
+          (await creerFactureAvecNumero({
+            type: type as InvoiceType,
+            annee,
+            orderId,
+            emitPourUserId: type === "ACHETEUR" ? null : producteur.id,
+            montantHtCents: 0,
+            tvaCents: 0,
+            montantTtcCents: 0,
+          }));
+
         const payload = construirePayload(
           type,
           order,
           producteur,
-          existante?.numero ?? formaterNumero(type, annee, 0),
+          row.numero,
           annee,
           dateEmission,
         );
         const xml = construireXmlFacturX(payload);
         const pdf = await construirePdfFacturX(payload, xml);
 
-        // Row en base (numéro attribué) — ou réutilisation de la row existante
-        const row = existante
-          ? await prisma.invoice.update({
-              where: { id: existante.id },
-              data: { numero: payload.numero },
-            })
-          : await creerFactureAvecNumero({
-              type: type as InvoiceType,
-              annee,
-              orderId,
-              emitPourUserId: type === "ACHETEUR" ? null : producteur.id,
-              montantHtCents: payload.totalHtCents,
-              tvaCents: payload.totalTvaCents,
-              montantTtcCents: payload.totalTtcCents,
-            });
+        // 2) Montants définitifs (calculés avec le payload) — toujours à jour,
+        //    y compris en réparation (les montants initiaux peuvent être à 0).
+        await prisma.invoice.update({
+          where: { id: row.id },
+          data: {
+            montantHtCents: payload.totalHtCents,
+            tvaCents: payload.totalTvaCents,
+            montantTtcCents: payload.totalTtcCents,
+          },
+        });
 
         // Upload dans le bucket privé
         const chemin = `factures/${orderId}/${row.numero}.pdf`;
