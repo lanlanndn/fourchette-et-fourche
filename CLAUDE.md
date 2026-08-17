@@ -41,6 +41,8 @@
 
 **Commandes** : `npm run dev` / `npm run build` (jamais les deux en même temps !) / `npx tsc --noEmit`
 
+**Variables d'environnement** (`.env.local` + variables Vercel) : `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `PLATFORM_COMMISSION_PERCENT`, `PLATFORM_COMMISSION_TVA_PERCENT` (défaut 20), `RESEND_API_KEY`, `EMAIL_FROM`, et les `SOCIETE_*` pour les factures (`SOCIETE_NOM`, `SOCIETE_SIRET`, `SOCIETE_TVA_INTRA`, `SOCIETE_ADRESSE`, `SOCIETE_VILLE`, `SOCIETE_CODE_POSTAL` — vides → « à compléter » sur les PDF). Détail dans `.env.local.example`. **Ne jamais modifier `.env.local` sans demander à Landry.**
+
 ---
 
 ## 4. État d'avancement (14 août 2026)
@@ -119,6 +121,18 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - Diagnostic/rattrapage : `GET /api/test-facture?orderId=…`. Maintenance : `scripts/regenerer-factures.mjs <orderIds…>` (supprime rows + fichiers pour régénérer — à lancer par Landry avec `!`).
 - **Piège** : ne jamais `after()`/fire-and-forget pour la génération — tout est `await` dans le flux principal.
 
+### Routes API
+- `POST /api/webhooks/stripe` — webhook (signature vérifiée ; sans `DATABASE_URL` → no-op)
+- `GET /api/test-email` — diagnostic Resend (envoie un email de test)
+- `GET /api/test-facture?orderId=…` — diagnostic/rattrapage facturation (sans `orderId` → dernière commande PAID)
+- `GET /api/factures/[id]/telecharger` — URL signée 60 s, autorisation par rôle (FA → acheteur, FV → producteur, FC → personne)
+
+### Sécurité (rappels)
+- Webhook Stripe : signature `STRIPE_WEBHOOK_SECRET` vérifiée (`constructEventAsync`) — ne jamais se fier au body sans signature.
+- `SUPABASE_SERVICE_ROLE_KEY` : uniquement côté serveur (`src/lib/supabase/admin.ts`, scripts) — jamais dans une variable `NEXT_PUBLIC_*` ni dans un composant client.
+- Bucket `factures` **privé** (données personnelles) → téléchargement uniquement via URL signée + vérification d'appartenance (403 sinon).
+- Autorisations des pages tableau de bord : `requireUser()` / `requireRole()` + vérifications d'appartenance (annonces, commandes, conversations).
+
 ### Styles — monde « Enseigne peinte » (voir `DESIGN.md`)
 - Polices : Caprasimo (`font-affiche`) + Chivo (`font-texte`).
 - Utilitaires : `relief`/`relief-doux`, `cadre`, `filet`, `etiquette`, `champ`, `prix-peint`, `grain`, `coins`.
@@ -156,6 +170,24 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 5. Commits en français, concis.
 6. Réponse à Landry : en français, simple, avec ce qu'il peut tester.
 
+## 8. Comment tester
+
+### Tester un paiement + les factures (bout en bout)
+- **Comptes de test** (Supabase Auth) : restaurateur « Le Pinochti » (`landry.etave@outlook.fr`) et producteur « Le Mardereau » (`landryetave2@outlook.fr`) — mode test Stripe.
+- **Carte Stripe test** : `4242 4242 4242 4242`, exp. `12/34`, CVC `424`, code postal `42424`.
+- En local, pas besoin de `stripe listen` : le retour `?paiement=succes&session_id=…` sur `/tableau-de-bord/commandes` déclenche aussi `traiterCommandePayee` → factures + emails.
+- Vérifier ensuite : table `Invoice` (3 rows FA/FV/FC, numéros, montants), PDF dans le bucket `factures`, emails Resend reçus (test mode → uniquement l'adresse du compte Resend), page « Mes factures » des deux rôles.
+- **Analyser un PDF de facture** : extraire le flux EmbeddedFile (zlib `inflateSync`), comparer `<ram:ID>` au numéro en base et les totaux (voir piège pdf-lib au §6).
+
+### Vérifier qu'un déploiement Vercel est en ligne
+```bash
+curl https://fourchette-et-fourche.vercel.app/api/test-facture?orderId=inexistant
+```
+Réponse JSON `{"orderId":"inexistant",…}` = nouveau build actif (avant déploiement : 404). Aucun effet de bord avec un `orderId` inexistant.
+
+### Mode démo
+Sans `DATABASE_URL`, le site public s'affiche avec les données factices (8 producteurs, 16 annonces) — utile pour tester le visuel sans base.
+
 ---
 
-*Dernière mise à jour : 14 août 2026 — Phases 0–8 terminées et vérifiées de bout en bout. Phase 9 planifiée. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (7 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 17 août 2026 — Phases 0–8 terminées et vérifiées de bout en bout. Phase 9 planifiée. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (7 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
