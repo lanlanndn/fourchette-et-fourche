@@ -194,6 +194,7 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - En local, pas besoin de `stripe listen` : le retour `?paiement=succes&session_id=…` sur `/tableau-de-bord/commandes` déclenche aussi `traiterCommandePayee` → factures + emails.
 - Vérifier ensuite : table `Invoice` (3 rows FA/FV/FC, numéros, montants), PDF dans le bucket `factures`, emails Resend reçus (test mode → uniquement l'adresse du compte Resend), page « Mes factures » des deux rôles.
 - **Analyser un PDF de facture** : extraire le flux EmbeddedFile (zlib `inflateSync`), comparer `<ram:ID>` au numéro en base et les totaux (voir piège pdf-lib au §6).
+- **Vérifier la répartition de l'argent** (mode test) : `GET /v1/balance_transactions` sur l'API Stripe avec l'en-tête `Stripe-Account: acct_…` du producteur → le `payment` de la commande doit avoir `net = produits − commission` et `fee = commission + port` ; côté plateforme, `application_fee_amount` du PaymentIntent = commission + port. Bordereau : `GET /api/test-bordereau?orderId=…` (génération/rattrapage idempotente, `bordereauPath` rempli dans `Order`).
 
 ### Vérifier qu'un déploiement Vercel est en ligne
 ```bash
@@ -206,7 +207,7 @@ Sans `DATABASE_URL`, le site public s'affiche avec les données factices (8 prod
 
 ---
 
-*Dernière mise à jour : 17 août 2026 — Phase 10 (livraison « comme Vinted » via Sendcloud/Mondial Relay) implémentée : frais de port par poids inclus au paiement, adresse + téléphone collectés par Stripe Checkout, bordereau généré automatiquement au paiement et archivé en bucket privé, bloc vendeur « Expédier la commande » avec téléchargement du bordereau et « Colis déposé », suivi automatique, factures avec ligne port TVA 20 % (FC = commission + port). Migration appliquée en base (20260817150000_livraison_mr), bucket `bordereaux` créé. RESTE À FAIRE : clés Sendcloud (panel → Integrations), test bout en bout (option `sendcloud:letter` gratuite d'abord), ajuster la grille de tarifs de port avec les vrais tarifs. Phases 0–9 livrées et déployées (commit `be0b462`). URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 17 août 2026 — Phase 10 (livraison « comme Vinted » via Sendcloud/Mondial Relay) **testée de bout en bout sur Vercel** : commande test (71,98 € = 54,48 produits + 17,50 port) → producteur 49,03 € net, plateforme 22,95 € (commission + port) − 2,52 € frais Stripe ; bordereau généré (test gratuit `sendcloud:letter`), téléchargé par le vendeur, « Colis déposé » → emails + suivi OK ; factures FA/FV 71,98 € TTC + FC 22,95 € TTC vérifiées en base et dans Stripe (balance transactions). Clés Sendcloud en variables Vercel. **RESTE AVANT LES VRAIES ÉTIQUETTES** : retirer `SENDCLOUD_SHIPPING_OPTION=sendcloud:letter` (Vercel + `.env.local`) pour activer l'option réelle `mondial_relay:home_domestic` (auto-détectée), ajuster la grille de port (`src/lib/expedition/tarifs.ts`) avec les vrais tarifs Sendcloud. Phases 0–9 livrées et déployées. URL : `fourchette-et-fourche.vercel.app`.*
 
 ---
 
