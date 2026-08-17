@@ -39,6 +39,7 @@ function annonce(
     photos: [],
     quantitySold: 0,
     tvaCents: 550,
+    poidsGrammes: 1000,
     address: null,
     isActive: true,
     createdAt: MAINTENANT,

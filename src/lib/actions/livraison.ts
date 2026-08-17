@@ -9,19 +9,6 @@ import type { EtatFormulaire } from "@/lib/actions/auth";
 
 // ---------- Validation ----------
 
-const schemaExpedition = z.object({
-  orderId: z.string().min(1),
-  carrier: z.string().min(1, "Indiquez le transporteur.").max(100),
-  trackingNumber: z.string().min(1, "Indiquez le numéro de suivi.").max(200),
-  trackingUrl: z
-    .string()
-    .max(500)
-    .refine(
-      (val) => val === "" || z.string().url().safeParse(val).success,
-      "Le lien de suivi doit être une URL valide.",
-    ),
-});
-
 const schemaOrderId = z.object({
   orderId: z.string().min(1),
 });
@@ -50,6 +37,8 @@ async function verifierProducteurConcerne(orderId: string, userId: string) {
 }
 
 // ---------- Expédier une commande ----------
+// Le transporteur et le n° de suivi sont remplis automatiquement à partir du
+// bordereau Mondial Relay (généré au paiement) — le vendeur ne saisit plus rien.
 
 export async function expedierCommandeAction(
   _prev: EtatFormulaire,
@@ -61,19 +50,13 @@ export async function expedierCommandeAction(
       return { erreur: "Seuls les producteurs peuvent expédier une commande." };
     }
 
-    const brut = {
+    const validation = schemaOrderId.safeParse({
       orderId: formData.get("orderId"),
-      carrier: formData.get("carrier"),
-      trackingNumber: formData.get("trackingNumber"),
-      trackingUrl: formData.get("trackingUrl"),
-    };
-
-    const validation = schemaExpedition.safeParse(brut);
+    });
     if (!validation.success) {
-      return { erreur: validation.error.issues[0].message };
+      return { erreur: "Identifiant de commande manquant." };
     }
-
-    const { orderId, carrier, trackingNumber, trackingUrl } = validation.data;
+    const { orderId } = validation.data;
 
     const order = await verifierProducteurConcerne(orderId, user.id);
     if (!order) {
@@ -84,24 +67,30 @@ export async function expedierCommandeAction(
       return { erreur: "Cette commande ne peut pas être expédiée." };
     }
 
+    if (!order.bordereauPath || !order.shippingTrackingNumber) {
+      return {
+        erreur:
+          "Le bordereau d'envoi n'est pas encore prêt. Rechargez la page dans un instant.",
+      };
+    }
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
         deliveryStatus: "SHIPPED",
-        shippingCarrier: carrier,
-        shippingTrackingNumber: trackingNumber,
-        shippingTrackingUrl: trackingUrl || null,
         shippedAt: new Date(),
       },
     });
 
-    // Notifier l'acheteur (envoi synchrone pour Vercel)
+    // Notifier l'acheteur avec le lien de suivi (envoi synchrone pour Vercel)
     await notifierCommandeExpediee(orderId);
 
     revalidatePath(`/tableau-de-bord/commandes/${orderId}`);
     revalidatePath("/tableau-de-bord/commandes");
 
-    return { succes: "La commande a bien été marquée comme expédiée." };
+    return {
+      succes: "La commande est expédiée. L'acheteur reçoit le lien de suivi par email.",
+    };
   } catch (err) {
     console.error("[livraison] erreur expedierCommandeAction:", err);
     return { erreur: "Une erreur est survenue. Réessayez dans un instant." };

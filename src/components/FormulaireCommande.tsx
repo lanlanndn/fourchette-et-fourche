@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useActionState } from "react";
 import { creerCommandeAction } from "@/lib/actions/commandes";
 import { formaterPrix } from "@/lib/constantes";
+import { calculerFraisPort, POIDS_MAX_GRAMMES } from "@/lib/expedition/tarifs";
 import MessageFormulaire from "@/components/forms/MessageFormulaire";
 import BoutonEnvoi from "@/components/forms/BoutonEnvoi";
 
@@ -12,6 +13,7 @@ type Props = {
   prixCents: number;
   unit: string;
   quantiteDisponible: number;
+  poidsGrammes: number; // poids d'UNE unité (frais de port)
   estConnecte: boolean;
   estMonAnnonce: boolean;
   paiementsProducteurActifs: boolean;
@@ -22,6 +24,7 @@ export default function FormulaireCommande({
   prixCents,
   unit,
   quantiteDisponible,
+  poidsGrammes,
   estConnecte,
   estMonAnnonce,
   paiementsProducteurActifs,
@@ -72,7 +75,30 @@ export default function FormulaireCommande({
     );
   }
 
-  const totalCents = prixCents * quantiteChoisie;
+  const produitsCents = prixCents * quantiteChoisie;
+  const fraisPortCents = calculerFraisPort(
+    Math.round(poidsGrammes * quantiteChoisie),
+  );
+  const totalCents = fraisPortCents === null ? produitsCents : produitsCents + fraisPortCents;
+
+  // Colis trop lourd : paiement impossible, il faut contacter le producteur
+  if (fraisPortCents === null) {
+    return (
+      <div className="space-y-3">
+        <p className="rounded-sm border-2 border-garance bg-garance/10 px-4 py-3 text-sm font-medium text-garance">
+          Commande trop lourde pour la livraison (max {POIDS_MAX_GRAMMES / 1000} kg).
+          Contactez le producteur via la messagerie.
+        </p>
+        <button
+          type="button"
+          disabled
+          className="relief w-full rounded-sm border-2 border-encre bg-garance px-6 py-3.5 font-texte text-sm font-bold tracking-wide text-platre uppercase opacity-50 cursor-not-allowed"
+        >
+          Payer avec Stripe
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form action={actionAvecEtat} className="space-y-3.5">
@@ -108,17 +134,27 @@ export default function FormulaireCommande({
         </span>
       </div>
 
-      {/* Total */}
-      <p className="text-sm text-encre">
-        Total :{" "}
-        <span className="prix-peint text-2xl text-garance">
-          {formaterPrix(totalCents)}
-        </span>
-      </p>
+      {/* Total produits + port */}
+      <dl className="space-y-1 border-t-2 border-encre/10 pt-3 text-sm">
+        <div className="flex justify-between">
+          <dt className="text-encre-doux">Produits</dt>
+          <dd className="text-encre">{formaterPrix(produitsCents)}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-encre-doux">Frais de port (Mondial Relay)</dt>
+          <dd className="text-encre">{formaterPrix(fraisPortCents)}</dd>
+        </div>
+        <div className="flex items-baseline justify-between border-t-2 border-encre/10 pt-2">
+          <dt className="font-bold text-encre">Total</dt>
+          <dd className="prix-peint text-2xl text-garance">
+            {formaterPrix(totalCents)}
+          </dd>
+        </div>
+      </dl>
 
       <p className="text-xs text-encre-doux/70">
-        Commission de 10 % incluse. Le reste est reversé directement au
-        producteur.
+        Adresse de livraison demandée à l&apos;étape du paiement. Commission de
+        10 % incluse, le reste est reversé directement au producteur.
       </p>
 
       <MessageFormulaire etat={etat} />

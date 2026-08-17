@@ -7,6 +7,7 @@ type Props = {
   trackingUrl?: string | null;
   shippedAt?: Date | null;
   deliveredAt?: Date | null;
+  adresse?: string | null; // adresse de livraison (rappel pour l'acheteur)
 };
 
 export default function BlocSuivi({
@@ -16,6 +17,7 @@ export default function BlocSuivi({
   trackingUrl,
   shippedAt,
   deliveredAt,
+  adresse,
 }: Props) {
   const statut = STATUTS_LIVRAISON[deliveryStatus] ?? {
     label: deliveryStatus,
@@ -39,6 +41,12 @@ export default function BlocSuivi({
         </p>
       ) : (
         <dl className="mt-4 space-y-2 text-sm">
+          {adresse && (
+            <div className="flex justify-between gap-4">
+              <dt className="shrink-0 text-encre-doux">Livraison à</dt>
+              <dd className="text-right font-medium text-encre">{adresse}</dd>
+            </div>
+          )}
           {carrier && (
             <div className="flex justify-between">
               <dt className="text-encre-doux">Transporteur</dt>

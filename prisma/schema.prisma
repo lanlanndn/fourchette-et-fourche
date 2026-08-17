@@ -108,6 +108,7 @@ model Listing {
   priceCents  Int // TOUJOURS en centimes (ex : 250 = 2,50 €)
   tvaCents    Int @default(550) // taux de TVA en centièmes de point : 0, 550 (5,5 %), 1000 (10 %), 2000 (20 %)
   unit        Unit
+  poidsGrammes Int @default(1000) // poids d'UNE unité vendue, en grammes (frais de port)
   quantityAvailable Int
   quantitySold      Int @default(0)
 
@@ -194,8 +195,19 @@ model Order {
   buyerId         String
   buyer           User        @relation("BuyerOrders", fields: [buyerId], references: [id])
   status          OrderStatus @default(PENDING_PAYMENT)
-  totalCents      Int
-  commissionCents Int // part de la plateforme
+  totalCents      Int // produits + frais de port
+  commissionCents Int // commission plateforme (10 % des produits uniquement)
+
+  // Livraison (Mondial Relay)
+  shippingMethod        String @default("DOMICILE") // "RELAIS" prévu plus tard
+  shippingPriceCents    Int    @default(0) // frais de port payés par l'acheteur
+  shippingAddressNom    String? // nom du destinataire (collecté par Stripe)
+  shippingAddressLigne1 String?
+  shippingAddressLigne2 String?
+  shippingAddressCP     String?
+  shippingAddressVille  String?
+  shippingAddressPays   String? // défaut "FR"
+  shippingAddressTel    String? // téléphone du destinataire (obligatoire Mondial Relay domicile)
 
   deliveryStatus       DeliveryStatus @default(NOT_SHIPPED)
   shippingCarrier      String?
@@ -203,6 +215,9 @@ model Order {
   shippingTrackingUrl  String?
   shippedAt            DateTime?
   deliveredAt          DateTime?
+
+  bordereauNumeroExpedition String? // n° d'expédition Mondial Relay
+  bordereauPath        String? // PDF du bordereau dans le bucket privé "bordereaux"
 
   stripePaymentIntentId String? @unique
   stripeChargeId        String?

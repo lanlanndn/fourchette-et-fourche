@@ -16,9 +16,22 @@ export function emailConfirmationAcheteur(params: {
   quantite: number;
   unite: string;
   prixUnitaireCents: number;
+  shippingPriceCents: number;
   totalCents: number;
   orderId: string;
 }): ContenuEmail {
+  const produitsCents = params.totalCents - params.shippingPriceCents;
+
+  const lignePort =
+    params.shippingPriceCents > 0
+      ? `
+      <tr>
+        <td style="font-size:14px;">Frais de port (Mondial Relay)</td>
+        <td style="font-size:14px;text-align:center;">—</td>
+        <td style="font-size:14px;text-align:right;">${formaterPrixEmail(params.shippingPriceCents)}</td>
+      </tr>`
+      : "";
+
   const contenu = `
     <p style="font-size:15px;margin:0 0 12px 0;line-height:1.5;">
       Bonjour ${echapperHtml(params.displayName)},
@@ -35,7 +48,11 @@ export function emailConfirmationAcheteur(params: {
       <tr>
         <td style="font-size:14px;">${echapperHtml(params.titreProduit)}</td>
         <td style="font-size:14px;text-align:center;">${params.quantite} ${echapperHtml(params.unite.toLowerCase())}</td>
-        <td style="font-size:14px;text-align:right;color:#b93a1d;font-weight:600;">${formaterPrixEmail(params.totalCents)}</td>
+        <td style="font-size:14px;text-align:right;">${formaterPrixEmail(produitsCents)}</td>
+      </tr>${lignePort}
+      <tr style="background-color:#e3d7bc;">
+        <td colspan="2" style="font-weight:700;font-size:14px;text-align:right;border-top:2px solid #28221b;">Total payé</td>
+        <td style="font-weight:700;font-size:14px;text-align:right;color:#b93a1d;border-top:2px solid #28221b;">${formaterPrixEmail(params.totalCents)}</td>
       </tr>
     </table>
     <p style="font-size:13px;color:#6b5f4e;margin:0 0 0 0;line-height:1.5;">
@@ -61,11 +78,32 @@ export function emailNouvelleCommande(params: {
   titreProduit: string;
   quantite: number;
   unite: string;
+  shippingPriceCents: number;
   totalCents: number;
   commissionCents: number;
+  adresseLivraison: string | null;
+  poidsLibelle: string;
   orderId: string;
 }): ContenuEmail {
-  const net = params.totalCents - params.commissionCents;
+  const net = params.totalCents - params.commissionCents - params.shippingPriceCents;
+
+  const blocAdresse = params.adresseLivraison
+    ? `
+    <div style="border:2px solid #28221b;padding:12px;margin-bottom:16px;background-color:#fbf7ec;">
+      <p style="font-weight:700;font-size:14px;margin:0 0 6px 0;">Adresse de livraison</p>
+      <p style="font-size:14px;margin:0;line-height:1.5;">${echapperHtml(params.adresseLivraison)}</p>
+      <p style="font-size:13px;color:#6b5f4e;margin:6px 0 0 0;">Poids du colis : ${echapperHtml(params.poidsLibelle)}</p>
+    </div>`
+    : "";
+
+  const lignePort =
+    params.shippingPriceCents > 0
+      ? `
+      <tr>
+        <td colspan="2" style="font-size:13px;color:#6b5f4e;text-align:right;">Frais de port (payés à la plateforme)</td>
+        <td style="font-size:13px;text-align:right;color:#6b5f4e;">−${formaterPrixEmail(params.shippingPriceCents)}</td>
+      </tr>`
+      : "";
 
   const contenu = `
     <p style="font-size:15px;margin:0 0 12px 0;line-height:1.5;">
@@ -74,6 +112,7 @@ export function emailNouvelleCommande(params: {
     <p style="font-size:15px;margin:0 0 16px 0;line-height:1.5;">
       Vous avez reçu une nouvelle commande de <strong>${echapperHtml(params.acheteurNom)}</strong>.
     </p>
+    ${blocAdresse}
     <table cellpadding="8" cellspacing="0" border="0" width="100%" style="border:2px solid #28221b;border-collapse:collapse;margin-bottom:16px;">
       <tr style="background-color:#e3d7bc;">
         <td style="font-weight:700;font-size:14px;border-bottom:2px solid #28221b;">Produit</td>
@@ -88,14 +127,15 @@ export function emailNouvelleCommande(params: {
       <tr>
         <td colspan="2" style="font-size:13px;color:#6b5f4e;text-align:right;">Commission plateforme (10 %)</td>
         <td style="font-size:13px;text-align:right;color:#6b5f4e;">−${formaterPrixEmail(params.commissionCents)}</td>
-      </tr>
+      </tr>${lignePort}
       <tr style="background-color:#e3d7bc;">
         <td colspan="2" style="font-weight:700;font-size:14px;text-align:right;border-top:2px solid #28221b;">Net perçu</td>
         <td style="font-weight:700;font-size:14px;text-align:right;color:#2f6b4f;border-top:2px solid #28221b;">${formaterPrixEmail(net)}</td>
       </tr>
     </table>
     <p style="font-size:13px;color:#6b5f4e;margin:0 0 0 0;line-height:1.5;">
-      Vous pouvez répondre à l'acheteur via la messagerie.
+      Le bordereau d'envoi est disponible dans la commande : téléchargez-le,
+      imprimez-le et déposez le colis dans un point Mondial Relay.
     </p>
   `;
 

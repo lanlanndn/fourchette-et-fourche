@@ -33,6 +33,9 @@ export const BADGES_TYPES_FACTURES: Record<TypeFacture, string> = {
 export const TAUX_TVA_COMMISSION_BP =
   (Number(process.env.PLATFORM_COMMISSION_TVA_PERCENT) || 20) * 100;
 
+/** Taux de TVA sur les frais de port (transport) : 20 %. En centièmes de point. */
+export const TAUX_TVA_PORT_BP = 2000;
+
 /**
  * Unités du projet → codes UNECE Rec. 20 (attribut unitCode de BilledQuantity).
  * BOTTE n'existe pas dans Rec. 20 → C62 (pièce). BOUTEILLE → BO.

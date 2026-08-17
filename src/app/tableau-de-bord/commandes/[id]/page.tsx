@@ -10,7 +10,7 @@ import {
   LIBELLES_COURTS_FACTURES,
 } from "@/lib/facturation/constantes";
 import BlocSuivi from "@/components/BlocSuivi";
-import FormulaireExpedition from "@/components/FormulaireExpedition";
+import BordereauBloc from "@/components/BordereauBloc";
 import FormulaireLivree from "@/components/FormulaireLivree";
 import { expedierCommandeAction, marquerLivreeCommandeAction } from "@/lib/actions/livraison";
 
@@ -36,6 +36,7 @@ export default async function CommandeDetailPage({ params }: Props) {
               title: true,
               category: true,
               unit: true,
+              poidsGrammes: true,
               producerId: true,
               producer: { select: { id: true, displayName: true, city: true, departement: true } },
             },
@@ -75,8 +76,21 @@ export default async function CommandeDetailPage({ params }: Props) {
     estAcheteur ? facture.type === "ACHETEUR" : facture.type === "VENTE",
   );
 
-  // Montant net pour le producteur (total - commission)
-  const netCents = order.totalCents - order.commissionCents;
+  // Poids total du colis (frais de port / bordereau Mondial Relay)
+  const poidsTotalGrammes = order.items.reduce(
+    (somme, item) => somme + Math.round(item.listing.poidsGrammes * item.quantity),
+    0,
+  );
+
+  // Adresse de livraison (collectée par Stripe au paiement)
+  const adresseLivraison = order.shippingAddressLigne1
+    ? `${order.shippingAddressLigne1}${order.shippingAddressLigne2 ? ` — ${order.shippingAddressLigne2}` : ""}, ${order.shippingAddressCP} ${order.shippingAddressVille}`
+    : null;
+
+  // Montant net pour le producteur : total - port (récupéré par la plateforme
+  // pour payer le bordereau) - commission
+  const netCents =
+    order.totalCents - order.commissionCents - order.shippingPriceCents;
 
   return (
     <div>
@@ -168,6 +182,17 @@ export default async function CommandeDetailPage({ params }: Props) {
             </dd>
           </div>
 
+          {order.shippingPriceCents > 0 && (
+            <div className="flex justify-between border-t-2 border-encre/10 pt-2">
+              <dt className="text-encre-doux">
+                dont frais de port (Mondial Relay)
+              </dt>
+              <dd className="text-encre-doux">
+                {formaterPrix(order.shippingPriceCents)}
+              </dd>
+            </div>
+          )}
+
           {estProducteurConcerne && (
             <>
               <div className="flex justify-between border-t-2 border-encre/10 pt-2">
@@ -197,14 +222,29 @@ export default async function CommandeDetailPage({ params }: Props) {
             trackingUrl={order.shippingTrackingUrl}
             shippedAt={order.shippedAt}
             deliveredAt={order.deliveredAt}
+            adresse={adresseLivraison}
           />
 
           {estProducteurConcerne && order.deliveryStatus === "NOT_SHIPPED" && (
             <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-5">
-              <FormulaireExpedition
-                orderId={order.id}
-                serverAction={expedierCommandeAction}
-              />
+              {order.shippingAddressLigne1 ? (
+                <BordereauBloc
+                  orderId={order.id}
+                  nomDestinataire={order.shippingAddressNom ?? "—"}
+                  adresseLigne1={order.shippingAddressLigne1}
+                  adresseLigne2={order.shippingAddressLigne2}
+                  codePostal={order.shippingAddressCP ?? ""}
+                  ville={order.shippingAddressVille ?? ""}
+                  poidsTotalGrammes={poidsTotalGrammes}
+                  bordereauDisponible={!!order.bordereauPath}
+                  serverAction={expedierCommandeAction}
+                />
+              ) : (
+                <p className="text-sm text-encre-doux">
+                  Adresse de livraison indisponible : cette commande a été
+                  passée avant la mise en place de la livraison.
+                </p>
+              )}
             </div>
           )}
 

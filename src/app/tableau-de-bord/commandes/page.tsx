@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { traiterCommandePayee } from "@/lib/commandes-utils";
+import { traiterCommandePayee, enregistrerAdresseLivraison } from "@/lib/commandes-utils";
 import { STATUTS_COMMANDE, STATUTS_LIVRAISON, formaterPrix } from "@/lib/constantes";
 
 export const metadata: Metadata = { title: "Commandes" };
@@ -24,6 +24,9 @@ export default async function CommandesPage({ searchParams }: Props) {
 
       if (session.payment_status === "paid" && session.metadata?.orderId) {
         const orderId = session.metadata.orderId;
+
+        // Adresse de livraison collectée par Stripe Checkout → commande
+        await enregistrerAdresseLivraison(orderId, session);
 
         // Traiter la commande (idempotent : ne fait rien si déjà PAID)
         await traiterCommandePayee(orderId, session.id);

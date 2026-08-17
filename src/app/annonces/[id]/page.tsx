@@ -137,6 +137,7 @@ export default async function AnnonceDetailPage({ params }: Props) {
                   prixCents={annonce.priceCents}
                   unit={annonce.unit}
                   quantiteDisponible={annonce.quantityAvailable}
+                  poidsGrammes={annonce.poidsGrammes}
                   estConnecte={estConnecte}
                   estMonAnnonce={
                     estConnecte && currentUser?.id === annonce.producer.id

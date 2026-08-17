@@ -19,6 +19,7 @@ import { formaterNumero } from "./numeros";
 import {
   CODES_UNITE_UNECE,
   TAUX_TVA_COMMISSION_BP,
+  TAUX_TVA_PORT_BP,
   anneeFacturation,
   infosSociete,
   ventilerTva,
@@ -324,6 +325,24 @@ function construirePayload(
         ? partieDepuisUser(producteur)
         : partieDepuisUser(order.buyer);
 
+  // Ligne « Frais de port » (TVA 20 % sur le transport) — présente sur les
+  // trois factures dès que la commande comporte des frais de livraison.
+  const lignePort = (): LigneFacture => {
+    const taux = TAUX_TVA_PORT_BP;
+    const { htCents, tvaCents } = ventilerTva(order.shippingPriceCents, taux);
+    return {
+      nom: "Frais de port — livraison à domicile (Mondial Relay)",
+      quantite: 1,
+      uniteCode: "C62",
+      uniteLibelle: "service",
+      prixUnitaireTtcCents: order.shippingPriceCents,
+      montantTtcCents: order.shippingPriceCents,
+      tauxTvaBp: taux,
+      montantHtCents: htCents,
+      montantTvaCents: tvaCents,
+    };
+  };
+
   let lignes: LigneFacture[];
   if (type === "COMMISSION") {
     const taux = TAUX_TVA_COMMISSION_BP;
@@ -341,6 +360,9 @@ function construirePayload(
         montantTvaCents: tvaCents,
       },
     ];
+    // La plateforme récupère aussi le port (via l'application fee Stripe) :
+    // il est refacturé au producteur sur la facture de commission interne.
+    if (order.shippingPriceCents > 0) lignes.push(lignePort());
   } else {
     lignes = order.items.map((item) => {
       const taux = item.listing.tvaCents;
@@ -357,6 +379,7 @@ function construirePayload(
         montantTvaCents: tvaCents,
       };
     });
+    if (order.shippingPriceCents > 0) lignes.push(lignePort());
   }
 
   const ventilation = ventilerParTaux(lignes);

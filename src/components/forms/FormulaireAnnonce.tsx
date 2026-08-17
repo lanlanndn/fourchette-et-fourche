@@ -22,6 +22,13 @@ function centimesVersEuros(centimes: number): string {
   return (centimes / 100).toFixed(2).replace(".", ",");
 }
 
+/** Formate des grammes en kg pour affichage (1500 → "1,5", 1000 → "1"). */
+function grammesVersKg(grammes: number): string {
+  return (grammes / 1000).toLocaleString("fr-FR", {
+    maximumFractionDigits: 3,
+  });
+}
+
 export default function FormulaireAnnonce({ action, listing, adresseProducteur }: Props) {
   const [etat, actionAvecEtat, enCours] = useActionState(action, null);
   const estCreation = !listing;
@@ -94,8 +101,8 @@ export default function FormulaireAnnonce({ action, listing, adresseProducteur }
         </div>
       </div>
 
-      {/* Ligne : Prix + Quantité + TVA */}
-      <div className="grid gap-5 sm:grid-cols-3">
+      {/* Ligne : Prix + Quantité + TVA + Poids */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label htmlFor="prixEuros" className={classeLabel}>
             Prix TTC <span className="font-medium normal-case tracking-normal text-encre-doux">(€)</span>
@@ -141,6 +148,26 @@ export default function FormulaireAnnonce({ action, listing, adresseProducteur }
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label htmlFor="poidsKg" className={classeLabel}>
+            Poids d&apos;une unité{" "}
+            <span className="font-medium normal-case tracking-normal text-encre-doux">
+              (kg)
+            </span>
+          </label>
+          <input
+            id="poidsKg"
+            name="poidsKg"
+            type="text"
+            inputMode="decimal"
+            defaultValue={listing ? grammesVersKg(listing.poidsGrammes) : "1"}
+            placeholder="Ex : 1,5"
+            className={classeChamp}
+          />
+          <p className="mt-1.5 text-xs text-encre-doux">
+            Sert à calculer les frais de port (max 30 kg).
+          </p>
         </div>
       </div>
 

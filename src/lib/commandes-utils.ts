@@ -1,7 +1,9 @@
+import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { formaterPrix } from "@/lib/constantes";
 import { notifierCommandePayee } from "@/lib/emails/notifications";
 import { genererFacturesCommande } from "@/lib/facturation/generer";
+import { genererBordereau } from "@/lib/expedition/generer";
 
 /**
  * Traite une commande après paiement réussi.
@@ -106,5 +108,49 @@ export async function traiterCommandePayee(
     } catch (err) {
       console.error("[facturation] erreur inattendue pour la commande", orderId, ":", err);
     }
+
+    // Bordereau d'envoi Mondial Relay — généré dès le paiement, prêt pour
+    // le vendeur. Idempotent, ne casse jamais le flux (comme la facturation).
+    try {
+      const bordereau = await genererBordereau(orderId);
+      if (!bordereau.ok) {
+        console.error("[bordereau] commande", orderId, "— erreurs :", bordereau.erreurs);
+      }
+    } catch (err) {
+      console.error("[bordereau] erreur inattendue pour la commande", orderId, ":", err);
+    }
+  }
+}
+
+/**
+ * Enregistre l'adresse de livraison collectée par Stripe Checkout
+ * (shipping_address_collection) sur la commande, pour le vendeur.
+ * Idempotent : n'écrit que si l'adresse n'est pas encore renseignée
+ * (le webhook et la page de retour peuvent arriver dans n'importe quel ordre).
+ */
+export async function enregistrerAdresseLivraison(
+  orderId: string,
+  session: Stripe.Checkout.Session,
+): Promise<void> {
+  // Stripe ≥ 2025 : l'adresse collectée par le Checkout est dans
+  // collected_information.shipping_details, le téléphone sur session.phone.
+  const details = session.collected_information?.shipping_details;
+  if (!details?.address) return;
+
+  try {
+    await prisma.order.updateMany({
+      where: { id: orderId, shippingAddressLigne1: null },
+      data: {
+        shippingAddressNom: details.name ?? undefined,
+        shippingAddressLigne1: details.address.line1 ?? undefined,
+        shippingAddressLigne2: details.address.line2 ?? null,
+        shippingAddressCP: details.address.postal_code ?? undefined,
+        shippingAddressVille: details.address.city ?? undefined,
+        shippingAddressPays: details.address.country ?? "FR",
+        shippingAddressTel: session.customer_details?.phone ?? undefined,
+      },
+    });
+  } catch (err) {
+    console.error("[livraison] adresse non enregistrée pour", orderId, ":", err);
   }
 }

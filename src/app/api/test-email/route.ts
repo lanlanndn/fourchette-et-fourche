@@ -28,6 +28,7 @@ export async function GET() {
       quantite: 1,
       unite: "pièce",
       prixUnitaireCents: 1000,
+      shippingPriceCents: 0,
       totalCents: 1000,
       orderId: "test-123",
     }),

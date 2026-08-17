@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { geocoderAdresse } from "@/lib/geo";
+import { POIDS_MAX_GRAMMES } from "@/lib/expedition/tarifs";
 import type { EtatFormulaire } from "@/lib/actions/auth";
 
 // ---------- Validation ----------
@@ -28,6 +29,7 @@ const schemaAnnonce = z.object({
   unit: z.enum(UNITES_IDS, { message: "Choisis une unité." }),
   tvaCents: z.enum(["0", "550", "1000", "2000"], { message: "Choisis un taux de TVA." }),
   quantityAvailable: z.coerce.number().int().min(1, "La quantité doit être d'au moins 1."),
+  poidsKg: z.string().regex(/^\d+([.,]\d{1,3})?$/, "Poids invalide (ex : 1,5).").optional(),
   certifications: z.array(z.string()).optional(),
   adresse: z.string().optional(),
   photos: z.array(z.string()).optional(),
@@ -39,6 +41,24 @@ const schemaAnnonce = z.object({
 function eurosVersCentimes(valeur: string): number {
   const normalise = valeur.replace(",", ".");
   return Math.round(parseFloat(normalise) * 100);
+}
+
+/** Convertit un poids saisi en kg ("1,5" ou "1.5") en grammes (1500). */
+function kgVersGrammes(valeur: string | undefined): number {
+  if (!valeur || !valeur.trim()) return 1000; // défaut : 1 kg
+  const normalise = valeur.replace(",", ".");
+  return Math.round(parseFloat(normalise) * 1000);
+}
+
+/** Poids minimal d'une unité (10 g) et maximal (30 kg, limite Mondial Relay). */
+const POIDS_MIN_GRAMMES = 10;
+
+/** Valide un poids en grammes, renvoie un message d'erreur ou null. */
+function erreurPoids(poidsGrammes: number): string | null {
+  if (poidsGrammes < POIDS_MIN_GRAMMES || poidsGrammes > POIDS_MAX_GRAMMES) {
+    return `Le poids d'une unité doit être compris entre 0,01 et ${POIDS_MAX_GRAMMES / 1000} kg.`;
+  }
+  return null;
 }
 
 /** Vérifie qu'une annonce appartient à l'utilisateur connecté. */
@@ -69,6 +89,7 @@ export async function createListingAction(
     unit: formData.get("unit"),
     tvaCents: formData.get("tvaCents"),
     quantityAvailable: formData.get("quantityAvailable"),
+    poidsKg: formData.get("poidsKg") || undefined,
     certifications: formData.getAll("certifications").map(String),
     adresse: formData.get("adresse") || undefined,
     photos: formData.getAll("photos").map(String).filter(Boolean),
@@ -78,10 +99,14 @@ export async function createListingAction(
   if (!validation.success) {
     return { erreur: validation.error.issues[0].message };
   }
-  const { title, description, category, prixEuros, unit, tvaCents, quantityAvailable, certifications, adresse, photos } =
+  const { title, description, category, prixEuros, unit, tvaCents, quantityAvailable, poidsKg, certifications, adresse, photos } =
     validation.data;
 
   const priceCents = eurosVersCentimes(prixEuros);
+
+  const poidsGrammes = kgVersGrammes(poidsKg);
+  const erreurPoidsMsg = erreurPoids(poidsGrammes);
+  if (erreurPoidsMsg) return { erreur: erreurPoidsMsg };
 
   // Géocodage si une adresse personnalisée est fournie
   let lat = user.lat;
@@ -118,6 +143,7 @@ export async function createListingAction(
       priceCents,
       tvaCents: Number(tvaCents),
       unit: unit as never,
+      poidsGrammes,
       quantityAvailable,
       certifications: certifications ?? [],
       photos: photos ?? [],
@@ -155,6 +181,7 @@ export async function updateListingAction(
     unit: formData.get("unit"),
     tvaCents: formData.get("tvaCents"),
     quantityAvailable: formData.get("quantityAvailable"),
+    poidsKg: formData.get("poidsKg") || undefined,
     certifications: formData.getAll("certifications").map(String),
     adresse: formData.get("adresse") || undefined,
     photos: formData.getAll("photos").map(String).filter(Boolean),
@@ -164,10 +191,14 @@ export async function updateListingAction(
   if (!validation.success) {
     return { erreur: validation.error.issues[0].message };
   }
-  const { title, description, category, prixEuros, unit, tvaCents, quantityAvailable, certifications, adresse, photos } =
+  const { title, description, category, prixEuros, unit, tvaCents, quantityAvailable, poidsKg, certifications, adresse, photos } =
     validation.data;
 
   const priceCents = eurosVersCentimes(prixEuros);
+
+  const poidsGrammes = kgVersGrammes(poidsKg);
+  const erreurPoidsMsg = erreurPoids(poidsGrammes);
+  if (erreurPoidsMsg) return { erreur: erreurPoidsMsg };
 
   // Géocodage si l'adresse a changé
   let geoData: Record<string, unknown> = {};
@@ -196,6 +227,7 @@ export async function updateListingAction(
       priceCents,
       tvaCents: Number(tvaCents),
       unit: unit as never,
+      poidsGrammes,
       quantityAvailable,
       certifications: certifications ?? [],
       photos: photos ?? [],

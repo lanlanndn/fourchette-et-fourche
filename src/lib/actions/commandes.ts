@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStripe, calculerCommission } from "@/lib/stripe";
+import { calculerFraisPort, POIDS_MAX_GRAMMES } from "@/lib/expedition/tarifs";
 import type { EtatFormulaire } from "@/lib/actions/auth";
 import type { OrderStatus } from "@prisma/client";
 
@@ -98,9 +99,21 @@ export async function creerCommandeAction(
       };
     }
 
-    // Calculer les montants
-    const totalCents = listing.priceCents * quantite;
-    const commissionCents = calculerCommission(totalCents);
+    // Calculer les montants : produits + frais de port (selon le poids)
+    const produitsCents = listing.priceCents * quantite;
+    const commissionCents = calculerCommission(produitsCents);
+
+    const poidsTotalGrammes = Math.round(listing.poidsGrammes * quantite);
+    const fraisPortCents = calculerFraisPort(poidsTotalGrammes);
+    if (fraisPortCents === null) {
+      return {
+        erreur: `Commande trop lourde pour la livraison (max ${POIDS_MAX_GRAMMES / 1000} kg). Contactez le producteur via la messagerie.`,
+      };
+    }
+
+    // Le port remonte à la plateforme via l'application fee Stripe :
+    // c'est elle qui paie le bordereau Mondial Relay.
+    const totalCents = produitsCents + fraisPortCents;
 
     // Créer la commande en base
     const order = await prisma.order.create({
@@ -109,13 +122,15 @@ export async function creerCommandeAction(
         status: "PENDING_PAYMENT" as OrderStatus,
         totalCents,
         commissionCents,
+        shippingMethod: "DOMICILE",
+        shippingPriceCents: fraisPortCents,
         items: {
           create: [
             {
               listingId,
               quantity: quantite,
               unitPriceCents: listing.priceCents,
-              subtotalCents: totalCents,
+              subtotalCents: produitsCents,
             },
           ],
         },
@@ -129,7 +144,9 @@ export async function creerCommandeAction(
       head.get("origin") ??
       "http://localhost:3000";
 
-    // Créer la session Checkout Stripe (destination charge)
+    // Créer la session Checkout Stripe (destination charge).
+    // Stripe collecte l'adresse de livraison (shipping_address_collection) :
+    // elle sera enregistrée sur la commande au moment du paiement.
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [
@@ -137,19 +154,37 @@ export async function creerCommandeAction(
           quantity: 1,
           price_data: {
             currency: "eur",
-            unit_amount: totalCents,
+            unit_amount: produitsCents,
             product_data: {
               name: `${listing.title} — ${quantite} ${listing.unit.toLowerCase()}`,
               description: `Commande auprès de ${listing.producer.displayName}`,
             },
           },
         },
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: fraisPortCents,
+            product_data: {
+              name: "Frais de port",
+              description: "Livraison à domicile — Mondial Relay",
+            },
+          },
+        },
       ],
       payment_intent_data: {
-        application_fee_amount: commissionCents,
+        application_fee_amount: commissionCents + fraisPortCents,
         transfer_data: {
           destination: listing.producer.stripeAccountId!,
         },
+      },
+      shipping_address_collection: {
+        allowed_countries: ["FR"],
+      },
+      // Téléphone du destinataire : obligatoire pour Mondial Relay domicile
+      phone_number_collection: {
+        enabled: true,
       },
       metadata: {
         orderId: order.id,

@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { traiterCommandePayee } from "@/lib/commandes-utils";
+import { traiterCommandePayee, enregistrerAdresseLivraison } from "@/lib/commandes-utils";
 import { notifierPaiementExpire, notifierOnboardingTermine } from "@/lib/emails/notifications";
 
 /**
@@ -80,6 +80,9 @@ async function gererSessionCompletee(session: Stripe.Checkout.Session) {
       : session.payment_intent?.id;
 
   if (!paymentIntentId) return;
+
+  // Adresse de livraison collectée par Stripe Checkout → commande
+  await enregistrerAdresseLivraison(orderId, session);
 
   await traiterCommandePayee(orderId, paymentIntentId);
 }

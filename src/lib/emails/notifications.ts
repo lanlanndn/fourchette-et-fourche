@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail } from "./envoi";
+import { formaterPoids } from "@/lib/expedition/tarifs";
 import {
   emailConfirmationAcheteur,
   emailNouvelleCommande,
@@ -26,6 +27,7 @@ export async function notifierCommandePayee(orderId: string): Promise<void> {
                 id: true,
                 title: true,
                 unit: true,
+                poidsGrammes: true,
                 producer: {
                   select: { id: true, email: true, displayName: true },
                 },
@@ -37,6 +39,15 @@ export async function notifierCommandePayee(orderId: string): Promise<void> {
     });
 
     if (!order || order.status !== "PAID") return;
+
+    // Adresse de livraison + poids du colis (pour l'email du producteur)
+    const adresseLivraison = order.shippingAddressLigne1
+      ? `${order.shippingAddressLigne1}${order.shippingAddressLigne2 ? ` — ${order.shippingAddressLigne2}` : ""}, ${order.shippingAddressCP} ${order.shippingAddressVille}`
+      : null;
+    const poidsTotal = order.items.reduce(
+      (somme, item) => somme + Math.round(item.listing.poidsGrammes * item.quantity),
+      0,
+    );
 
     for (const item of order.items) {
       const { listing } = item;
@@ -50,6 +61,7 @@ export async function notifierCommandePayee(orderId: string): Promise<void> {
             quantite: item.quantity,
             unite: listing.unit,
             prixUnitaireCents: item.unitPriceCents,
+            shippingPriceCents: order.shippingPriceCents,
             totalCents: order.totalCents,
             orderId: order.id,
           }),
@@ -65,8 +77,11 @@ export async function notifierCommandePayee(orderId: string): Promise<void> {
             titreProduit: listing.title,
             quantite: item.quantity,
             unite: listing.unit,
+            shippingPriceCents: order.shippingPriceCents,
             totalCents: order.totalCents,
             commissionCents: order.commissionCents,
+            adresseLivraison,
+            poidsLibelle: formaterPoids(poidsTotal),
             orderId: order.id,
           }),
         });

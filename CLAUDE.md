@@ -36,12 +36,13 @@
 | Paiement | **Stripe Connect** — Checkout Sessions + destination charges (mode test, clés `sk_test`/`pk_test`) |
 | Carte | Leaflet + react-leaflet 5 + OpenStreetMap |
 | Géocodage | api-adresse.data.gouv.fr + geo.api.gouv.fr |
+| Livraison | **Mondial Relay Connect** (API XML/SOAP sur HTTP) — bordereaux d'envoi, `src/lib/expedition/` |
 | Emails | **Resend** — `src/lib/emails/` (envoi, gabarit, templates, notifications) |
 | Hébergement | **Vercel** — `fourchette-et-fourche.vercel.app`, déploiement auto depuis GitHub |
 
 **Commandes** : `npm run dev` / `npm run build` (jamais les deux en même temps !) / `npx tsc --noEmit`
 
-**Variables d'environnement** (`.env.local` + variables Vercel) : `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `PLATFORM_COMMISSION_PERCENT`, `PLATFORM_COMMISSION_TVA_PERCENT` (défaut 20), `RESEND_API_KEY`, `EMAIL_FROM`, et les `SOCIETE_*` pour les factures (`SOCIETE_NOM`, `SOCIETE_SIRET`, `SOCIETE_TVA_INTRA`, `SOCIETE_ADRESSE`, `SOCIETE_VILLE`, `SOCIETE_CODE_POSTAL` — vides → « à compléter » sur les PDF). Détail dans `.env.local.example`. **Ne jamais modifier `.env.local` sans demander à Landry.**
+**Variables d'environnement** (`.env.local` + variables Vercel) : `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `PLATFORM_COMMISSION_PERCENT`, `PLATFORM_COMMISSION_TVA_PERCENT` (défaut 20), `RESEND_API_KEY`, `EMAIL_FROM`, les `MONDIAL_RELAY_URL` / `MONDIAL_RELAY_USER` / `MONDIAL_RELAY_PASSWORD` / `MONDIAL_RELAY_CUSTOMER_ID` (livraison), et les `SOCIETE_*` pour les factures (`SOCIETE_NOM`, `SOCIETE_SIRET`, `SOCIETE_TVA_INTRA`, `SOCIETE_ADRESSE`, `SOCIETE_VILLE`, `SOCIETE_CODE_POSTAL` — vides → « à compléter » sur les PDF). Détail dans `.env.local.example`. **Ne jamais modifier `.env.local` sans demander à Landry.**
 
 ---
 
@@ -60,7 +61,8 @@
 | 6 — Finitions | SEO, page 404, mode démo (8 producteurs + 16 annonces factices) |
 | 7 — Emails | **Resend** : 5 templates (confirmation commande, nouvelle commande, nouveau message, paiement expiré, onboarding). Envoi synchrone (pas de fire-and-forget — Vercel coupe les tâches d'arrière-plan). Préférence `emailNotifications`. Route de diagnostic `/api/test-email`. |
 | 8 — Facturation | **Factur-X natif (pdf-lib)** : à chaque commande payée, 3 factures générées automatiquement — FA (acheteur, total TTC), FV (vente autofacturée au nom du producteur), FC (commission 10 % + TVA 20 %). PDF/A-3 avec XML CII intégré (profil BASIC WL), stockés dans le bucket **privé** `factures`, envoyés par email Resend en pièces jointes, téléchargeables via URL signée. **Visibilité par rôle** : acheteur → FA seule, producteur → FV seule (page + email) ; FC = document interne plateforme (stockée, non affichée, téléchargement 403). Pages `/tableau-de-bord/factures` + bloc factures sur le détail commande. Route de diagnostic/rattrapage `/api/test-facture`. TVA par annonce (`Listing.tvaCents`, défaut 5,5 %), numéro TVA intracom sur le profil. Infos société via env `SOCIETE_*`. À prévoir avant le go-live : connexion PDP pour la réforme e-invoicing 2026-2028. |
-| 9 — Livraison | **Suivi manuel simple** : le producteur saisit transporteur + numéro de suivi + lien, marque la commande comme expédiée puis livrée. L'acheteur reçoit un email à chaque étape (expédition + livraison) et voit le suivi dans son tableau de bord. "Livrée" impossible si la commande n'est pas `PAID`. Factures visibles même après remboursement/litige. Liste producteur : badges statut commande + livraison côte à côte. Frais de port reportés (intégration transporteur possible plus tard). Migration appliquée en base via `scripts/appliquer-migration-livraison.mjs`. |
+| 9 — Livraison | ~~Suivi manuel simple~~ (remplacé par la Phase 10). Garde-fous statut, badges de statut. |
+| 10 — Livraison Mondial Relay | **« Comme Vinted »** : frais de port calculés selon le poids (`Listing.poidsGrammes`, grille dans `src/lib/expedition/tarifs.ts`, max 30 kg) et **inclus dans le paiement** (2e ligne du Checkout Stripe). **Stripe Checkout collecte l'adresse de livraison + téléphone** (`shipping_address_collection` + `phone_number_collection`, enregistrés via `enregistrerAdresseLivraison` — API 2026 : `session.collected_information.shipping_details`). **Bordereau généré automatiquement au paiement** via l'API Mondial Relay Connect (XML/SOAP sur `connect-api-sandbox…/api/shipment` en test, `connect-api…/api/shipment` en prod ; DeliveryMode `HOC` domicile, CollectionMode `REL` dépôt point relais ; PDF `PdfUrl` 10x15 archivé dans le bucket **privé** `bordereaux`). Le vendeur télécharge le bordereau (`BordereauBloc`), clique « Colis déposé » (`expedierCommandeAction` simplifiée — transporteur + suivi remplis automatiquement) puis « livrée ». L'acheteur suit via `BlocSuivi`. **Argent** : `application_fee_amount = commission + frais de port` → le port remonte à la plateforme qui paie les bordereaux ; le producteur reçoit toujours `produits − 10 %`. **Factures** : FA/FV avec ligne port TVA 20 %, FC = commission + port. Emails : adresse + poids dans « nouvelle commande », port dans la confirmation. Routes `/api/bordereaux/[orderId]/telecharger` (producteur seul) et `/api/test-bordereau?orderId=…` (diagnostic/rattrapage). Env `MONDIAL_RELAY_URL/_USER/_PASSWORD/_CUSTOMER_ID` (bac à sable d'abord). |
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 
@@ -102,6 +104,15 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - `src/lib/commandes-utils.ts` : `traiterCommandePayee()` — partagé entre le webhook et la page commandes.
 - `src/app/api/webhooks/stripe/route.ts` : `checkout.session.completed` → PAID + stock −1 + conversation auto ; `account.updated` → onboarding confirmé.
 - Badge de notification sur l'onglet Commandes (pastille garance, comme la messagerie).
+- **Depuis la Phase 10** : `application_fee_amount = commissionCents + shippingPriceCents` (le port remonte à la plateforme pour payer le bordereau) ; le Checkout a 2 lignes (produits + port), collecte l'adresse (`shipping_address_collection`) et le téléphone (`phone_number_collection`).
+
+### Livraison (`src/lib/expedition/`)
+- `tarifs.ts` : grille de port par tranche de poids, `calculerFraisPort()` (pur, côté client aussi), `POIDS_MAX_GRAMMES` (30 kg), `formaterPoids()`.
+- `mondial-relay.ts` : client API Connect (XML en POST sur `/api/shipment`, auth Login/Password/CustomerId/Culture dans le `<Context>`), `creerBordereau()` → `{ numeroExpedition, urlPdf }`.
+- `generer.ts` : `genererBordereau(orderId)` — idempotent, ne lève jamais, appelé par `traiterCommandePayee` après la facturation ; archive le PDF dans le bucket privé `bordereaux` (l'URL MR expire) et remplit transporteur/suivi.
+- `commandes-utils.ts` : `enregistrerAdresseLivraison(orderId, session)` — copie l'adresse Stripe sur la commande (webhook **et** page de retour, idempotent via `where shippingAddressLigne1: null`).
+- Routes : `GET /api/bordereaux/[orderId]/telecharger` (producteur concerné uniquement, URL signée 60 s), `GET /api/test-bordereau?orderId=…` (diagnostic/rattrapage).
+- `BordereauBloc.tsx` : bloc vendeur (adresse + poids + téléchargement + « Colis déposé »). `expedierCommandeAction` n'accepte plus que `orderId` (transporteur/suivi viennent du bordereau).
 
 ### Emails (`src/lib/emails/`)
 - `envoi.ts` : client Resend paresseux, détection clé absente/placeholder → skip silencieux. Supporte `attachments` (pièces jointes).
@@ -126,6 +137,8 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - `GET /api/test-email` — diagnostic Resend (envoie un email de test)
 - `GET /api/test-facture?orderId=…` — diagnostic/rattrapage facturation (sans `orderId` → dernière commande PAID)
 - `GET /api/factures/[id]/telecharger` — URL signée 60 s, autorisation par rôle (FA → acheteur, FV → producteur, FC → personne)
+- `GET /api/bordereaux/[orderId]/telecharger` — bordereau PDF, producteur concerné uniquement, URL signée 60 s
+- `GET /api/test-bordereau?orderId=…` — diagnostic/rattrapage bordereau (sans `orderId` → dernière commande PAID)
 
 ### Sécurité (rappels)
 - Webhook Stripe : signature `STRIPE_WEBHOOK_SECRET` vérifiée (`constructEventAsync`) — ne jamais se fier au body sans signature.
@@ -158,6 +171,9 @@ Les pages du tableau de bord importent Prisma directement (elles n'existent pas 
 - **Navigateur sous VPN** : `xdg-open` inutile pour localhost → utiliser `chromium` directement.
 - **Commits** : `git -c user.name="Landry" -c user.email="landry@fourchette-fourche.local"` (pas de config git globale).
 - **Emails sur Vercel** : ne pas utiliser `after()` ou fire-and-forget pour l'envoi d'emails — Vercel serverless coupe les Promise non attendues. Toujours `await` l'envoi dans le flux principal (coût ~200 ms).
+- **Stripe API 2026 (`2026-07-29.dahlia`)** : l'adresse collectée par Checkout n'est plus `session.shipping_details` mais `session.collected_information.shipping_details` (`{ address, name }`) ; le téléphone est dans `session.customer_details.phone`.
+- **Mondial Relay Connect** : API XML (pas REST JSON) en POST sur `/api/shipment` — auth `Login`/`Password`/`CustomerId`/`Culture` dans `<Context>`, `<OutputOptions><OutputType>PdfUrl` ; `DeliveryMode Mode="HOC"` = domicile France, `CollectionMode Mode="REL"` = dépôt en point relais. Réponse : attribut `ShipmentNumber` + `<LabelList><Label><Output>` (URL du PDF). **L'URL du PDF expire** → toujours l'archiver dans le bucket privé `bordereaux`. En cas d'échec (identifiants absents, API KO), `genererBordereau` log `[bordereau]` sans casser la commande — rattrapage via `/api/test-bordereau`. Téléphone du destinataire OBLIGATOIRE pour le domicile.
+- **Appliquer une migration en base** : `node --env-file=.env.local scripts/appliquer-migration-livraison-mondial-relay.mjs` (idempotent) — à exécuter par Landry avec `!` (base partagée). Le déploiement Vercel doit attendre la migration (sinon 500 sur les commandes).
 
 ---
 
@@ -190,7 +206,7 @@ Sans `DATABASE_URL`, le site public s'affiche avec les données factices (8 prod
 
 ---
 
-*Dernière mise à jour : 17 août 2026 — Phases 0–9 terminées et vérifiées de bout en bout, déployées sur Vercel (commit `be0b462`). Phase 9 (suivi de livraison manuel) finalisée : emails expédition + livraison, garde-fous statut, badges de statut, migration appliquée en base. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (9 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 17 août 2026 — Phase 10 (livraison « comme Vinted » via Mondial Relay) implémentée : frais de port par poids inclus au paiement, adresse + téléphone collectés par Stripe Checkout, bordereau généré automatiquement au paiement et archivé en bucket privé, bloc vendeur « Expédier la commande » avec téléchargement du bordereau et « Colis déposé », suivi automatique, factures avec ligne port TVA 20 % (FC = commission + port). RESTE À FAIRE : migration en base (`scripts/appliquer-migration-livraison-mondial-relay.mjs` par Landry avec `!`), création du bucket `bordereaux`, identifiants Mondial Relay (bac à sable d'abord), test bout en bout, déploiement Vercel. Phases 0–9 livrées et déployées (commit `be0b462`). URL : `fourchette-et-fourche.vercel.app`.*
 
 ---
 
