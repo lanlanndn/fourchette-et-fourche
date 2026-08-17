@@ -6,8 +6,8 @@
 // Clés : panel Sendcloud → Settings → Integrations → « Sendcloud API » → Connect.
 //
 // Références : POST /api/v3/shipments/announce (création synchrone + étiquette)
-// et POST /api/v3/shipping-options/return-a-list-of-available-shipping-options
-// (liste des options activées sur le compte, avec leur `code`).
+// et POST /api/v3/shipping-options (liste des options activées sur le compte,
+// réponse { data: [{ code, functionalities.last_mile, … }] }).
 
 export type AdresseExpedition = {
   nom: string; // société / nom complet
@@ -114,14 +114,11 @@ export async function listerOptionsExpedition(params: {
     carrier_code: process.env.SENDCLOUD_CARRIER ?? "mondial_relay",
   };
 
-  const reponse = await fetch(
-    `${URL_API}/shipping-options/return-a-list-of-available-shipping-options`,
-    {
-      method: "POST",
-      headers: entetesAuthSendcloud(),
-      body: JSON.stringify(corps),
-    },
-  );
+  const reponse = await fetch(`${URL_API}/shipping-options`, {
+    method: "POST",
+    headers: entetesAuthSendcloud(),
+    body: JSON.stringify(corps),
+  });
   const texte = await reponse.text();
   if (!reponse.ok) {
     throw new Error(
@@ -136,11 +133,14 @@ export async function listerOptionsExpedition(params: {
     return [];
   }
 
+  const brut = json as { data?: OptionBrute[]; options?: OptionBrute[] };
   const liste: OptionBrute[] = Array.isArray(json)
     ? (json as OptionBrute[])
-    : Array.isArray((json as { options?: OptionBrute[] }).options)
-      ? (json as { options: OptionBrute[] }).options
-      : [];
+    : Array.isArray(brut.data)
+      ? brut.data
+      : Array.isArray(brut.options)
+        ? brut.options
+        : [];
 
   return liste.map((o) => ({
     code: String(o.code ?? ""),
