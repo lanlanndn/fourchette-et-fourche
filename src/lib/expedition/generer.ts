@@ -1,4 +1,4 @@
-// Génération du bordereau d'envoi Mondial Relay pour une commande payée.
+// Génération du bordereau d'envoi (via Sendcloud) pour une commande payée.
 // Appelé depuis traiterCommandePayee (juste après la facturation) : le bordereau
 // est prêt dès le paiement, le vendeur n'a plus qu'à le télécharger.
 //
@@ -6,12 +6,11 @@
 // double entrée webhook/page de retour, rattrapage via /api/test-bordereau).
 import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { creerBordereau, clientMondialRelayConfigure } from "./mondial-relay";
-
-/** URL publique du suivi de colis Mondial Relay. */
-function urlSuivi(numeroExpedition: string): string {
-  return `https://www.mondialrelay.fr/suivi-de-colis?Expedition=${encodeURIComponent(numeroExpedition)}`;
-}
+import {
+  creerBordereau,
+  clientSendcloudConfigure,
+  entetesAuthSendcloud,
+} from "./sendcloud";
 
 export async function genererBordereau(
   orderId: string,
@@ -68,11 +67,11 @@ export async function genererBordereau(
       };
     }
 
-    if (!clientMondialRelayConfigure()) {
+    if (!clientSendcloudConfigure()) {
       return {
         ok: false,
         erreurs: [
-          "Mondial Relay non configuré (MONDIAL_RELAY_USER / _PASSWORD / _CUSTOMER_ID manquantes).",
+          "Sendcloud non configuré (SENDCLOUD_PUBLIC_KEY / SENDCLOUD_SECRET_KEY manquantes).",
         ],
       };
     }
@@ -85,7 +84,7 @@ export async function genererBordereau(
       0,
     );
 
-    // 1) Créer le bordereau chez Mondial Relay (sandbox ou prod selon MONDIAL_RELAY_URL)
+    // 1) Créer le bordereau chez Sendcloud (transporteur Mondial Relay)
     const bordereau = await creerBordereau({
       orderId: order.id,
       expediteur: {
@@ -110,14 +109,23 @@ export async function genererBordereau(
       poidsGrammes: poidsTotal,
     });
 
-    // 2) Archiver le PDF dans le bucket privé (l'URL Mondial Relay expire)
+    // 2) Archiver le PDF dans le bucket privé (base64 renvoyé par l'API,
+    //    ou lien de téléchargement du document)
     let pdf: Uint8Array;
     try {
-      const reponse = await fetch(bordereau.urlPdf);
-      if (!reponse.ok) {
-        throw new Error(`Téléchargement du PDF : HTTP ${reponse.status}`);
+      if (bordereau.pdfBase64) {
+        pdf = new Uint8Array(Buffer.from(bordereau.pdfBase64, "base64"));
+      } else if (bordereau.urlPdf) {
+        const reponse = await fetch(bordereau.urlPdf, {
+          headers: entetesAuthSendcloud(),
+        });
+        if (!reponse.ok) {
+          throw new Error(`Téléchargement du PDF : HTTP ${reponse.status}`);
+        }
+        pdf = new Uint8Array(await reponse.arrayBuffer());
+      } else {
+        throw new Error("Aucun PDF renvoyé par Sendcloud.");
       }
-      pdf = new Uint8Array(await reponse.arrayBuffer());
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new Error(`Bordereau créé mais PDF inaccessible : ${msg}`);
@@ -138,9 +146,9 @@ export async function genererBordereau(
       data: {
         bordereauNumeroExpedition: bordereau.numeroExpedition,
         bordereauPath: chemin,
-        shippingCarrier: "Mondial Relay",
+        shippingCarrier: bordereau.transporteur,
         shippingTrackingNumber: bordereau.numeroExpedition,
-        shippingTrackingUrl: urlSuivi(bordereau.numeroExpedition),
+        shippingTrackingUrl: bordereau.trackingUrl,
       },
     });
 
