@@ -64,7 +64,7 @@
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 
-**Prochaines étapes** (quand Landry sera prêt) : acheter `fourchette-et-fourche.fr` (~10 €/an), vérifier le domaine dans Resend, compléter les `SOCIETE_*` (SIRET, TVA intracom, adresse), passer Stripe en mode live, puis Phase 9 (livraison).
+**Prochaines étapes** (quand Landry sera prêt) : acheter `fourchette-et-fourche.fr` (~10 €/an), vérifier le domaine dans Resend, compléter les `SOCIETE_*` (SIRET, TVA intracom, adresse), passer Stripe en mode live.
 
 ### Comptes
 - **Supabase** : projet `tnwefomjxcbsallmcsvf` — PostgreSQL, Auth, Storage (bucket public `annonces` RLS, bucket **privé** `factures`)
@@ -190,7 +190,7 @@ Sans `DATABASE_URL`, le site public s'affiche avec les données factices (8 prod
 
 ---
 
-*Dernière mise à jour : 17 août 2026 — Phases 0–8 terminées et vérifiées de bout en bout. Phase 9 (suivi de livraison manuel) finalisée : emails expédition + livraison, garde-fous statut, badges de statut, migration appliquée en base. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (9 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 17 août 2026 — Phases 0–9 terminées et vérifiées de bout en bout, déployées sur Vercel (commit `be0b462`). Phase 9 (suivi de livraison manuel) finalisée : emails expédition + livraison, garde-fous statut, badges de statut, migration appliquée en base. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (9 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
 
 ---
 
