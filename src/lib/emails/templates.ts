@@ -260,3 +260,104 @@ export function emailFactureVente(params: {
     }),
   };
 }
+
+// ---------- Commande expédiée ----------
+
+export function emailCommandeExpediee(params: {
+  displayName: string;
+  titreProduit: string;
+  orderId: string;
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl?: string;
+}): ContenuEmail {
+  const trackingLink = params.trackingUrl
+    ? `<p style="font-size:15px;margin:0 0 16px 0;line-height:1.5;">
+        <a href="${params.trackingUrl}" style="color:#1e3f8c;text-decoration:underline;font-weight:600;">Suivre mon colis</a>
+       </p>`
+    : `<p style="font-size:14px;margin:0 0 16px 0;line-height:1.5;color:#6b5f4e;">
+        Numéro de suivi : ${echapperHtml(params.trackingNumber)}
+       </p>`;
+
+  const contenu = `
+    <p style="font-size:15px;margin:0 0 12px 0;line-height:1.5;">
+      Bonjour ${echapperHtml(params.displayName)},
+    </p>
+    <p style="font-size:15px;margin:0 0 16px 0;line-height:1.5;">
+      Votre commande <strong>${echapperHtml(params.titreProduit)}</strong> a été expédiée via ${echapperHtml(params.carrier)}.
+    </p>
+    <table cellpadding="8" cellspacing="0" border="0" width="100%" style="border:2px solid #28221b;border-collapse:collapse;margin-bottom:16px;">
+      <tr style="background-color:#e3d7bc;">
+        <td style="font-weight:700;font-size:14px;border-bottom:2px solid #28221b;">Transporteur</td>
+        <td style="font-weight:700;font-size:14px;border-bottom:2px solid #28221b;">Numéro de suivi</td>
+      </tr>
+      <tr>
+        <td style="font-size:14px;">${echapperHtml(params.carrier)}</td>
+        <td style="font-size:14px;">${echapperHtml(params.trackingNumber)}</td>
+      </tr>
+    </table>
+    ${trackingLink}
+  `;
+
+  return {
+    subject: "Votre commande a été expédiée",
+    ...gabaritEmail({
+      titre: "Commande expédiée",
+      contenu,
+      cta: params.trackingUrl
+        ? { texte: "Suivre mon colis", url: params.trackingUrl }
+        : { texte: "Voir ma commande", url: urlApp(`/tableau-de-bord/commandes/${params.orderId}`) },
+    }),
+  };
+}
+
+// ---------- Commande livrée ----------
+
+export function emailCommandeLivree(params: {
+  displayName: string;
+  titreProduit: string;
+  orderId: string;
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl?: string;
+}): ContenuEmail {
+  const trackingLink = params.trackingUrl
+    ? `<p style="font-size:15px;margin:0 0 16px 0;line-height:1.5;">
+        <a href="${params.trackingUrl}" style="color:#1e3f8c;text-decoration:underline;font-weight:600;">Suivre mon colis</a>
+       </p>`
+    : `<p style="font-size:14px;margin:0 0 16px 0;line-height:1.5;color:#6b5f4e;">
+        Numéro de suivi : ${echapperHtml(params.trackingNumber)}
+       </p>`;
+
+  const contenu = `
+    <p style="font-size:15px;margin:0 0 12px 0;line-height:1.5;">
+      Bonjour ${echapperHtml(params.displayName)},
+    </p>
+    <p style="font-size:15px;margin:0 0 16px 0;line-height:1.5;">
+      Votre commande <strong>${echapperHtml(params.titreProduit)}</strong> a bien été livrée.
+    </p>
+    <p style="font-size:14px;margin:0 0 16px 0;line-height:1.5;color:#6b5f4e;">
+      Nous espérons qu'elle vous donnera satisfaction. N'hésitez pas à contacter le producteur via la messagerie en cas de question.
+    </p>
+    <table cellpadding="8" cellspacing="0" border="0" width="100%" style="border:2px solid #28221b;border-collapse:collapse;margin-bottom:16px;">
+      <tr style="background-color:#e3d7bc;">
+        <td style="font-weight:700;font-size:14px;border-bottom:2px solid #28221b;">Transporteur</td>
+        <td style="font-weight:700;font-size:14px;border-bottom:2px solid #28221b;">Numéro de suivi</td>
+      </tr>
+      <tr>
+        <td style="font-size:14px;">${echapperHtml(params.carrier)}</td>
+        <td style="font-size:14px;">${echapperHtml(params.trackingNumber)}</td>
+      </tr>
+    </table>
+    ${trackingLink}
+  `;
+
+  return {
+    subject: "Votre commande a été livrée",
+    ...gabaritEmail({
+      titre: "Commande livrée",
+      contenu,
+      cta: { texte: "Voir ma commande", url: urlApp(`/tableau-de-bord/commandes/${params.orderId}`) },
+    }),
+  };
+}

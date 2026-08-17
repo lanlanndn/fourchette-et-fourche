@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { traiterCommandePayee } from "@/lib/commandes-utils";
-import { STATUTS_COMMANDE, formaterPrix } from "@/lib/constantes";
+import { STATUTS_COMMANDE, STATUTS_LIVRAISON, formaterPrix } from "@/lib/constantes";
 
 export const metadata: Metadata = { title: "Commandes" };
 
@@ -92,10 +92,22 @@ export default async function CommandesPage({ searchParams }: Props) {
       ) : (
         <div className="mt-6 space-y-4">
           {commandes.map((cmd) => {
-            const statut = STATUTS_COMMANDE[cmd.status] ?? {
+            const statutCommande = STATUTS_COMMANDE[cmd.status] ?? {
               label: cmd.status,
               classe: "bg-platre-fonce text-encre-doux",
             };
+
+            const statutLivraison = STATUTS_LIVRAISON[cmd.deliveryStatus] ?? {
+              label: cmd.deliveryStatus,
+              classe: "bg-platre-fonce text-encre-doux",
+            };
+
+            // Côté producteur, on affiche aussi le statut de livraison dès qu'un
+            // suivi existe (le statut de commande reste visible, jamais masqué).
+            const afficherStatutLivraison =
+              estProducteur &&
+              ["PAID", "REFUNDED", "DISPUTED"].includes(cmd.status) &&
+              cmd.deliveryStatus !== "NOT_SHIPPED";
 
             return (
               <Link
@@ -126,12 +138,19 @@ export default async function CommandesPage({ searchParams }: Props) {
                     })}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   <span
-                    className={`rounded-sm px-2.5 py-1 text-xs font-bold tracking-wider uppercase ${statut.classe}`}
+                    className={`rounded-sm px-2.5 py-1 text-xs font-bold tracking-wider uppercase ${statutCommande.classe}`}
                   >
-                    {statut.label}
+                    {statutCommande.label}
                   </span>
+                  {afficherStatutLivraison && (
+                    <span
+                      className={`rounded-sm px-2.5 py-1 text-xs font-bold tracking-wider uppercase ${statutLivraison.classe}`}
+                    >
+                      {statutLivraison.label}
+                    </span>
+                  )}
                   <span className="prix-peint text-xl text-garance">
                     {formaterPrix(cmd.totalCents)}
                   </span>

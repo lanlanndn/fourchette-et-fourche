@@ -60,3 +60,34 @@ export function IconeFourche({ className = "h-6 w-6" }: { className?: string }) 
     </svg>
   );
 }
+
+export function IconeCamion({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden {...traits}>
+      <rect x="2" y="7" width="12" height="9" rx="1.5" />
+      <path d="M14 11h3l3 3v2h-6z" />
+      <circle cx="6.5" cy="18" r="1.8" />
+      <circle cx="17.5" cy="18" r="1.8" />
+      <path d="M10 11V7" />
+    </svg>
+  );
+}
+
+export function IconeColis({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden {...traits}>
+      <rect x="4" y="5" width="16" height="14" rx="1.5" />
+      <path d="M12 5v14" />
+      <path d="M9 9h6" />
+    </svg>
+  );
+}
+
+export function IconeCheckRond({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden {...traits}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12 2.3 2.3 4.7-4.6" />
+    </svg>
+  );
+}

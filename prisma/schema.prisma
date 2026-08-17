@@ -183,6 +183,12 @@ enum OrderStatus {
   DISPUTED
 }
 
+enum DeliveryStatus {
+  NOT_SHIPPED
+  SHIPPED
+  DELIVERED
+}
+
 model Order {
   id              String      @id @default(cuid())
   buyerId         String
@@ -190,6 +196,13 @@ model Order {
   status          OrderStatus @default(PENDING_PAYMENT)
   totalCents      Int
   commissionCents Int // part de la plateforme
+
+  deliveryStatus       DeliveryStatus @default(NOT_SHIPPED)
+  shippingCarrier      String?
+  shippingTrackingNumber String?
+  shippingTrackingUrl  String?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
 
   stripePaymentIntentId String? @unique
   stripeChargeId        String?
@@ -201,6 +214,7 @@ model Order {
   invoices Invoice[]
 
   @@index([buyerId])
+  @@index([deliveryStatus])
 }
 
 model OrderItem {

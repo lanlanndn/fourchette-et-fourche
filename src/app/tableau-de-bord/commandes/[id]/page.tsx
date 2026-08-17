@@ -9,6 +9,10 @@ import {
   BADGES_TYPES_FACTURES,
   LIBELLES_COURTS_FACTURES,
 } from "@/lib/facturation/constantes";
+import BlocSuivi from "@/components/BlocSuivi";
+import FormulaireExpedition from "@/components/FormulaireExpedition";
+import FormulaireLivree from "@/components/FormulaireLivree";
+import { expedierCommandeAction, marquerLivreeCommandeAction } from "@/lib/actions/livraison";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -59,6 +63,10 @@ export default async function CommandeDetailPage({ params }: Props) {
     label: order.status,
     classe: "bg-platre-fonce text-encre-doux",
   };
+
+  // Afficher le bloc livraison pour les commandes payées ou dès qu'un suivi existe
+  const afficherLivraison =
+    order.status === "PAID" || order.deliveryStatus !== "NOT_SHIPPED";
 
   // Factures visibles selon le rôle : l'acheteur voit sa facture d'achat,
   // le producteur sa facture de vente. La facture de commission est le
@@ -179,8 +187,40 @@ export default async function CommandeDetailPage({ params }: Props) {
         </dl>
       </div>
 
-      {/* Factures */}
-      {order.status === "PAID" && (
+      {/* Livraison */}
+      {afficherLivraison && (
+        <div className="mt-6 space-y-4">
+          <BlocSuivi
+            deliveryStatus={order.deliveryStatus}
+            carrier={order.shippingCarrier}
+            trackingNumber={order.shippingTrackingNumber}
+            trackingUrl={order.shippingTrackingUrl}
+            shippedAt={order.shippedAt}
+            deliveredAt={order.deliveredAt}
+          />
+
+          {estProducteurConcerne && order.deliveryStatus === "NOT_SHIPPED" && (
+            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-5">
+              <FormulaireExpedition
+                orderId={order.id}
+                serverAction={expedierCommandeAction}
+              />
+            </div>
+          )}
+
+          {estProducteurConcerne && order.deliveryStatus === "SHIPPED" && (
+            <div className="relief-doux border-2 border-encre bg-[#fbf7ec] p-5">
+              <FormulaireLivree
+                orderId={order.id}
+                action={marquerLivreeCommandeAction}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Factures — visibles aussi après remboursement ou litige */}
+      {["PAID", "REFUNDED", "DISPUTED"].includes(order.status) && (
         <div className="mt-6 space-y-3">
           <h2 className="font-affiche text-lg text-encre uppercase">Factures</h2>
           {facturesVisibles.length === 0 ? (

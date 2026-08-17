@@ -47,7 +47,7 @@
 
 ## 4. État d'avancement (14 août 2026)
 
-**Phases 0–8 terminées** ✅ — Phase 9 planifiée
+**Phases 0–8 terminées** ✅ — **Phase 9 implémentée** ✅
 
 | Phase | Contenu |
 |---|---|
@@ -60,7 +60,7 @@
 | 6 — Finitions | SEO, page 404, mode démo (8 producteurs + 16 annonces factices) |
 | 7 — Emails | **Resend** : 5 templates (confirmation commande, nouvelle commande, nouveau message, paiement expiré, onboarding). Envoi synchrone (pas de fire-and-forget — Vercel coupe les tâches d'arrière-plan). Préférence `emailNotifications`. Route de diagnostic `/api/test-email`. |
 | 8 — Facturation | **Factur-X natif (pdf-lib)** : à chaque commande payée, 3 factures générées automatiquement — FA (acheteur, total TTC), FV (vente autofacturée au nom du producteur), FC (commission 10 % + TVA 20 %). PDF/A-3 avec XML CII intégré (profil BASIC WL), stockés dans le bucket **privé** `factures`, envoyés par email Resend en pièces jointes, téléchargeables via URL signée. **Visibilité par rôle** : acheteur → FA seule, producteur → FV seule (page + email) ; FC = document interne plateforme (stockée, non affichée, téléchargement 403). Pages `/tableau-de-bord/factures` + bloc factures sur le détail commande. Route de diagnostic/rattrapage `/api/test-facture`. TVA par annonce (`Listing.tvaCents`, défaut 5,5 %), numéro TVA intracom sur le profil. Infos société via env `SOCIETE_*`. À prévoir avant le go-live : connexion PDP pour la réforme e-invoicing 2026-2028. |
-| 9 — Livraison | 📋 **Planifié** — **ShipEngine** (multi-transporteurs : Mondial Relay, Colissimo, Chronopost) : étiquettes d'expédition, tracking, frais de port dans la commande. Alternative : statut manuel "Expédié" + lien tracking saisi par le producteur. |
+| 9 — Livraison | **Suivi manuel simple** : le producteur saisit transporteur + numéro de suivi + lien, marque la commande comme expédiée puis livrée. L'acheteur reçoit un email à chaque étape (expédition + livraison) et voit le suivi dans son tableau de bord. "Livrée" impossible si la commande n'est pas `PAID`. Factures visibles même après remboursement/litige. Liste producteur : badges statut commande + livraison côte à côte. Frais de port reportés (intégration transporteur possible plus tard). Migration appliquée en base via `scripts/appliquer-migration-livraison.mjs`. |
 
 Mode démo : activé automatiquement si `DATABASE_URL` est absent.
 
@@ -190,4 +190,151 @@ Sans `DATABASE_URL`, le site public s'affiche avec les données factices (8 prod
 
 ---
 
-*Dernière mise à jour : 17 août 2026 — Phases 0–8 terminées et vérifiées de bout en bout. Phase 9 planifiée. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (7 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+*Dernière mise à jour : 17 août 2026 — Phases 0–8 terminées et vérifiées de bout en bout. Phase 9 (suivi de livraison manuel) finalisée : emails expédition + livraison, garde-fous statut, badges de statut, migration appliquée en base. Facturation Factur-X (3 factures par commande : FA acheteur, FV vente autofacturée, FC commission interne) déployée et validée (numéros, montants, XML intégré, autorisations). Emails Resend fonctionnels (9 templates, envoi synchrone). Paiement Stripe Connect testé de bout en bout. URL : `fourchette-et-fourche.vercel.app`.*
+
+---
+
+## 9. Commandes — détail d'architecture (session du 17 août 2026)
+
+### Modèle de données (`prisma/schema.prisma`)
+
+```prisma
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  REFUNDED
+  DISPUTED
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  buyerId         String
+  buyer           User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  status          OrderStatus @default(PENDING_PAYMENT)
+  totalCents      Int
+  commissionCents Int
+
+  deliveryStatus       DeliveryStatus @default(NOT_SHIPPED)
+  shippingCarrier      String?
+  shippingTrackingNumber String?
+  shippingTrackingUrl  String?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
+
+  stripePaymentIntentId String? @unique
+  stripeChargeId        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     OrderItem[]
+  invoices  Invoice[]
+  @@index([buyerId])
+  @@index([deliveryStatus])
+}
+
+enum DeliveryStatus {
+  NOT_SHIPPED
+  SHIPPED
+  DELIVERED
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId      String
+  listing        Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  quantity       Float
+  unitPriceCents Int
+  subtotalCents  Int
+  @@index([orderId])
+}
+```
+
+**La livraison est gérée manuellement** : le producteur saisit le transporteur, le numéro de suivi et un lien de suivi optionnel, puis peut marquer la commande comme livrée. Les frais de port ne sont pas encore calculés automatiquement (hors plateforme en v1).
+
+### Statuts et affichage
+
+- Enum Prisma : `PENDING_PAYMENT`, `PAID`, `CANCELLED`, `REFUNDED`, `DISPUTED`.
+- Enum livraison : `NOT_SHIPPED`, `SHIPPED`, `DELIVERED`.
+- Affichage dans `src/lib/constantes.ts` : `STATUTS_COMMANDE` et `STATUTS_LIVRAISON` avec labels et classes Tailwind.
+- Badge "commandes en attente" (`countNouvellesCommandes` dans `src/lib/actions/commandes.ts`) = commandes `PAID` concernant le producteur connecté.
+
+### Flux de création / paiement
+
+1. **Côté annonce** : `src/components/FormulaireCommande.tsx` → action `creerCommandeAction` (`src/lib/actions/commandes.ts`).
+2. **Création commande** :
+   - Vérifie rôle `RESTAURATEUR`, stock suffisant, producteur onboardé Stripe.
+   - Calcule `totalCents = listing.priceCents * quantite`.
+   - Calcule `commissionCents = calculerCommission(totalCents)` (10 %).
+   - Crée `Order` + `OrderItem` avec `status: "PENDING_PAYMENT"`.
+3. **Checkout Stripe** : Stripe Checkout Session en mode `payment` avec :
+   - `payment_intent_data.application_fee_amount = commissionCents`
+   - `transfer_data.destination = producer.stripeAccountId`
+   - `metadata.orderId = order.id`
+   - `success_url` / `cancel_url` vers `/tableau-de-bord/commandes?paiement=succes|annule`
+4. **Paiement réussi** — deux entrées convergent vers `traiterCommandePayee(orderId, paymentIntentId)` (`src/lib/commandes-utils.ts`) :
+   - Webhook Stripe `checkout.session.completed` (`src/app/api/webhooks/stripe/route.ts`).
+   - Page de retour `/tableau-de-bord/commandes` qui appelle `stripe.checkout.sessions.retrieve(session_id)`.
+5. **`traiterCommandePayee`** (idempotent) :
+   - Passe `Order.status` à `PAID` via `updateMany` (race-condition safe).
+   - Décrémente `Listing.quantityAvailable`, incrémente `quantitySold`.
+   - Crée une conversation automatique si elle n'existe pas.
+   - Appelle `notifierCommandePayee(orderId)` → emails acheteur + producteur.
+   - Appelle `genererFacturesCommande(orderId)` → 3 factures Factur-X (FA/FV/FC).
+6. **Paiement expiré** : webhook `checkout.session.expired` → `CANCELLED` + email `notifierPaiementExpire`.
+
+### Pages UI commandes
+
+| Fichier | Rôle |
+|---|---|
+| `src/components/FormulaireCommande.tsx` | Formulaire quantité + bouton "Payer avec Stripe" |
+| `src/app/annonces/[id]/page.tsx` | Page produit qui intègre le formulaire |
+| `src/app/tableau-de-bord/commandes/page.tsx` | Liste des commandes + traitement retour Stripe |
+| `src/app/tableau-de-bord/commandes/[id]/page.tsx` | Détail commande (articles, résumé financier, livraison, factures) |
+| `src/components/FormulaireExpedition.tsx` | Formulaire producteur : transporteur + numéro de suivi + lien |
+| `src/components/FormulaireLivree.tsx` | Bouton producteur : marquer comme livrée |
+| `src/components/BlocSuivi.tsx` | Affichage du suivi (acheteur et producteur) |
+| `src/lib/actions/livraison.ts` | Actions serveur `expedierCommandeAction` + `marquerLivreeCommandeAction` |
+| `src/app/tableau-de-bord/layout.tsx` | Menu + badge commandes en attente |
+| `src/app/tableau-de-bord/page.tsx` | Tuile "Mes commandes" pour restaurateur |
+
+### Facturation liée aux commandes
+
+- `Invoice` a un `orderId` et appartient à un `Order` (`Order.invoices`).
+- 3 factures générées automatiquement à chaque commande `PAID` :
+  - `ACHETEUR` (FA) — visible par le restaurateur.
+  - `VENTE` (FV) — autofacturation, visible par le producteur.
+  - `COMMISSION` (FC) — document interne plateforme, non visible.
+- Orchestration : `src/lib/facturation/generer.ts`.
+- Téléchargement : `src/app/api/factures/[id]/telecharger/route.ts`.
+- Pages : `src/app/tableau-de-bord/factures/page.tsx`.
+- Diagnostic : `GET /api/test-facture?orderId=…`.
+
+### Livraison (Phase 9 — implémentée)
+
+- Le producteur saisit le transporteur, le numéro de suivi et un lien de suivi optionnel via `FormulaireExpedition` → action `expedierCommandeAction`.
+- La commande passe à `deliveryStatus = SHIPPED`, un email "Commande expédiée" est envoyé à l'acheteur (`notifierCommandeExpediee`).
+- Le producteur peut ensuite marquer la commande comme livrée via `FormulaireLivree` → action `marquerLivreeCommandeAction` (refuse si la commande n'est pas `PAID`).
+- La commande passe à `DELIVERED`, un email "Commande livrée" est envoyé à l'acheteur (`notifierCommandeLivree`, template `emailCommandeLivree`).
+- L'acheteur voit le bloc de suivi (`BlocSuivi`) dans le détail de sa commande.
+- Liste des commandes : badge statut commande toujours affiché, + badge livraison côté producteur dès qu'un suivi existe (`afficherStatutLivraison`).
+- Détail commande : les factures restent visibles pour `PAID`, `REFUNDED` et `DISPUTED`.
+- **Piège** : URLs de suivi dans les emails — ne pas passer par `echapperHtml()` dans un attribut `href` (les `&` seraient cassés) ; l'URL est déjà validée par Zod côté action.
+- Les frais de port ne sont pas gérés par la plateforme en v1 (reporté à une intégration transporteur ultérieure).
+- Migration appliquée en base via `scripts/appliquer-migration-livraison.mjs` (idempotent, instructions exécutées une par une — PostgreSQL refuse plusieurs commandes dans un envoi préparé).
+
+### Fichiers essentiels modifiés / créés pour la Phase 9
+
+- `prisma/schema.prisma`
+- `prisma/migrations/20260817120000_livraison/migration.sql`
+- `src/lib/constantes.ts`
+- `src/lib/actions/livraison.ts`
+- `src/components/FormulaireExpedition.tsx`
+- `src/components/FormulaireLivree.tsx`
+- `src/components/BlocSuivi.tsx`
+- `src/components/icones.tsx`
+- `src/app/tableau-de-bord/commandes/page.tsx`
+- `src/app/tableau-de-bord/commandes/[id]/page.tsx`
+- `src/lib/emails/templates.ts`
+- `src/lib/emails/notifications.ts`

@@ -41,6 +41,13 @@ export const STATUTS_COMMANDE: Record<string, { label: string; classe: string }>
   DISPUTED: { label: "Litige", classe: "bg-garance text-platre" },
 };
 
+// Statuts de livraison (affichage)
+export const STATUTS_LIVRAISON: Record<string, { label: string; classe: string }> = {
+  NOT_SHIPPED: { label: "À expédier", classe: "bg-ocre/30 text-encre" },
+  SHIPPED: { label: "Expédiée", classe: "bg-outremer text-platre" },
+  DELIVERED: { label: "Livrée", classe: "bg-verdigris text-platre" },
+};
+
 export const UNITES: Record<string, string> = {
   KG: "kg",
   GRAMMES: "g",

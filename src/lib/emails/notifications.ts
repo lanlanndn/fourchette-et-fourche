@@ -6,6 +6,8 @@ import {
   emailNouveauMessage,
   emailPaiementExpire,
   emailOnboardingTermine,
+  emailCommandeExpediee,
+  emailCommandeLivree,
 } from "./templates";
 
 // ---------- Notifiers publics (tous async, appelés avec await) ----------
@@ -180,5 +182,77 @@ export async function notifierOnboardingTermine(stripeAccountId: string): Promis
     });
   } catch (err) {
     console.error("[emails] erreur notifierOnboardingTermine:", err);
+  }
+}
+
+/** Envoie un email à l'acheteur quand sa commande est expédiée. */
+export async function notifierCommandeExpediee(orderId: string): Promise<void> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        buyer: { select: { email: true, displayName: true } },
+        items: {
+          take: 1,
+          include: { listing: { select: { title: true } } },
+        },
+      },
+    });
+
+    if (!order) return;
+    if (!order.buyer.email) return;
+
+    const item = order.items[0];
+    if (!item) return;
+
+    await envoyerEmail({
+      to: order.buyer.email,
+      ...emailCommandeExpediee({
+        displayName: order.buyer.displayName,
+        titreProduit: item.listing.title,
+        orderId: order.id,
+        carrier: order.shippingCarrier ?? "Transporteur",
+        trackingNumber: order.shippingTrackingNumber ?? "—",
+        trackingUrl: order.shippingTrackingUrl ?? undefined,
+      }),
+    });
+  } catch (err) {
+    console.error("[emails] erreur notifierCommandeExpediee:", err);
+  }
+}
+
+/** Envoie un email à l'acheteur quand sa commande est livrée. */
+export async function notifierCommandeLivree(orderId: string): Promise<void> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        buyer: { select: { email: true, displayName: true } },
+        items: {
+          take: 1,
+          include: { listing: { select: { title: true } } },
+        },
+      },
+    });
+
+    if (!order) return;
+    if (!order.buyer.email) return;
+
+    const item = order.items[0];
+    if (!item) return;
+
+    await envoyerEmail({
+      to: order.buyer.email,
+      ...emailCommandeLivree({
+        displayName: order.buyer.displayName,
+        titreProduit: item.listing.title,
+        orderId: order.id,
+        carrier: order.shippingCarrier ?? "Transporteur",
+        trackingNumber: order.shippingTrackingNumber ?? "—",
+        trackingUrl: order.shippingTrackingUrl ?? undefined,
+      }),
+    });
+  } catch (err) {
+    console.error("[emails] erreur notifierCommandeLivree:", err);
   }
 }
